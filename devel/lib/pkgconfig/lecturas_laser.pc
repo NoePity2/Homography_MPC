@@ -1,0 +1,8 @@
+prefix=/home/noe/ddr_ws/devel
+
+Name: lecturas_laser
+Description: Description of lecturas_laser
+Version: 0.0.0
+Cflags: 
+Libs: -L${prefix}/lib 
+Requires: 

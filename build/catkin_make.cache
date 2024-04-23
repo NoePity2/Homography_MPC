@@ -1,0 +1,2 @@
+lecturas_laser:matriz:robot_ddr:ros_astra_camera:rtcm_msgs:turtlebot3_simulations/turtlebot3_fake:turtlebot3_simulations/turtlebot3_gazebo:turtlebot3_simulations/turtlebot3_simulations:ublox/ublox:ublox/ublox_gps:ublox/ublox_msgs:ublox/ublox_serialization:visual_predictive
+-DCATKIN_DEVEL_PREFIX=/home/noe/ddr_ws/devel -DCMAKE_INSTALL_PREFIX=/home/noe/ddr_ws/install -G Unix Makefiles
