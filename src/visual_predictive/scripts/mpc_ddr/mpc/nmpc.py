@@ -301,11 +301,11 @@ class OptimizationHMPC(object):
 			lbU += [params_position['lbv'], params_orientation['lbO']]
 			ubU += [params_position['ubv'], params_orientation['ubO']]
 
-			# cost function
+			#Orientation cost function
 			sum_Omega += omega_i
 			theta_kn  = theta_k + T*sum_Omega   
 
-			# cost function
+			#Vision cost function
 			sum_x += np.cos(theta_kn) * v_i
 			x_kn  = state_vector[0] + T*sum_x
 			sum_y += np.sin(theta_kn) * v_i
@@ -319,19 +319,19 @@ class OptimizationHMPC(object):
 			self.Homography33.set_values(d=d,n=n,ck_t_ct=ck_t_ct,rk_x_rl=x_kn,rk_y_rl=y_kn,c_x_r=c_x_r,theta=theta_kn,phi=phi)
 
 			#Find predicted values to introduce them into Objective Function \bar{H}- \Gamma
-			h11_predicted = self.Homography11.predicted_value(state_vector[0],state_vector[1],theta_k)
-			h12_predicted = self.Homography12.predicted_value(state_vector[0],state_vector[1],theta_k)
-			h13_predicted = self.Homography13.predicted_value(state_vector[0],state_vector[1],theta_k)
-			h31_predicted = self.Homography31.predicted_value(state_vector[0],state_vector[1],theta_k)
-			h32_predicted = self.Homography32.predicted_value(state_vector[0],state_vector[1],theta_k)
-			h33_predicted = self.Homography33.predicted_value(state_vector[0],state_vector[1],theta_k)
+			self.h11_predicted = self.Homography11.predicted_value(state_vector[0],state_vector[1],theta_k)
+			self.h12_predicted = self.Homography12.predicted_value(state_vector[0],state_vector[1],theta_k)
+			self.h13_predicted = self.Homography13.predicted_value(state_vector[0],state_vector[1],theta_k)
+			self.h31_predicted = self.Homography31.predicted_value(state_vector[0],state_vector[1],theta_k)
+			self.h32_predicted = self.Homography32.predicted_value(state_vector[0],state_vector[1],theta_k)
+			self.h33_predicted = self.Homography33.predicted_value(state_vector[0],state_vector[1],theta_k)
 
-			h11_desired_value = self.Homography11.get_expected_value() - (H_actual[0] - h11_predicted)
-			h12_desired_value = self.Homography12.get_expected_value() - (H_actual[1] - h12_predicted)
-			h13_desired_value = self.Homography13.get_expected_value() - (H_actual[2] - h13_predicted)
-			h31_desired_value = self.Homography31.get_expected_value() - (H_actual[6] - h31_predicted)
-			h32_desired_value = self.Homography32.get_expected_value() - (H_actual[7] - h32_predicted)
-			h33_desired_value = self.Homography33.get_expected_value() - (H_actual[8] - h33_predicted)
+			h11_desired_value = self.Homography11.get_expected_value() - (H_actual[0] - self.h11_predicted)
+			h12_desired_value = self.Homography12.get_expected_value() - (H_actual[1] - self.h12_predicted)
+			h13_desired_value = self.Homography13.get_expected_value() - (H_actual[2] - self.h13_predicted)
+			h31_desired_value = self.Homography31.get_expected_value() - (H_actual[6] - self.h31_predicted)
+			h32_desired_value = self.Homography32.get_expected_value() - (H_actual[7] - self.h32_predicted)
+			h33_desired_value = self.Homography33.get_expected_value() - (H_actual[8] - self.h33_predicted)
    
 			J += vision_parameters['b11']*(self.Homography11.get_h11() - h11_desired_value[0] )**2  
 			J += vision_parameters['b12']*(self.Homography12.get_h12() - h12_desired_value[0] )**2
@@ -375,5 +375,10 @@ class OptimizationHMPC(object):
 
 	def get_min_fuction_value(self):
 		return self.min_function_value
+	
+	def get_predicted_values(self):
+		
+		return self.h11_predicted, self.h12_predicted, self.h13_predicted, self.h31_predicted, self.h32_predicted, self.h33_predicted
+		
 
 
