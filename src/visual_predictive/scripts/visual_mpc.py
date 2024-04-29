@@ -15,7 +15,7 @@ from mpc_ddr.params.params import orientation_params, position_params, vision_pa
 class VMPC():
 
 
-	def __init__(self,params_position=None,params_orientation=None,vision_parameters=None,x_init=0,y_init=0,yaw_init=0,T=0.1,N=15,c_x_r=0.035):
+	def __init__(self,params_position=None,params_orientation=None,vision_parameters=None,x_init=0,y_init=0,yaw_init=0,phi_target=0.0,T=0.1,N=15,c_x_r=0.035):
 		rospy.init_node('nonlinear_vmpc')
 		rospy.loginfo('Program has started') #Beginning terminal msg
 		rospy.logwarn("To start the movement, the simulation must be running\n\n")
@@ -23,29 +23,31 @@ class VMPC():
 		rospy.on_shutdown(self.shutdownhook)
 
 		#Variables of controller
-		self.N       = N
-		self.delta_t = 0.0
-		self.ctrl_c  = False
-		self.vel_x   = 0
-		self.vel_y   = 0
-		self.omega   = 0
-		self.T       = T
-		self.x       = x_init
-		self.y       = y_init
-		self.c_x_r   = c_x_r #Traslation between robot with respecto the camera x-axis
+		self.N          = N
+		self.delta_t    = 0.0
+		self.ctrl_c     = False
+		self.vel_x      = 0
+		self.vel_y      = 0
+		self.omega      = 0
+		self.T          = T
+		self.x          = x_init
+		self.y          = y_init
+		self.c_x_r      = c_x_r #Traslation between robot with respecto the camera x-axis
+		self.PHI_TARGET = phi_target*np.pi/180
+		self.phi_k      = self.PHI_TARGET - yaw_init
 
-        #Velocity
-		self.Vx = 0
-		self.Vy = 0
+        #Velocities (Controls)
+		self.angular_velocity = 0.0
+		self.V_k              = 0.0
 
 		self.params_position    = params_position
 		self.params_orientation = params_orientation
 		self.vision_parameters  = vision_parameters
 
 		#States
-		self.yaw   = yaw_init*np.pi/180
-		self.x_k   = np.array( [[x_init],[y_init]] )
-		self.x_new = np.array( [ self.x_k[0],self.x_k[1],[self.yaw]] )
+		#self.yaw = yaw_init*np.pi/180
+		#self.x_k = np.array( [[x_init],[y_init]] )
+		self.x_k = np.array( [ [x_init],[y_init],[yaw_init*np.pi/180]] )
 
 		# Obstacle parameters
 		#self.center_obstacle = (1.25, 1.0)
@@ -83,10 +85,11 @@ class VMPC():
 		
 		rospy.on_shutdown(self.shutdownhook)
 
-		file_obj = open("data_py.txt","w+") #If only the filename is given
-		
+		# file_obj = open("data_py.txt","w+") #If only the filename is given
+		self.vel_ops()
+
 		while not rospy.is_shutdown():
-			#//=================== LogCurrentResults =========================//
+			#==================== LogCurrentResults =========================#
 			self.t2 = rospy.Time.now().to_sec()
 			if(self.homo_matrix.data == [] or self.phi.data == [] or self.ck_t_ct_vector.data==[] or self.n_vector.data==[] or self.d_value.data==[]):
 				continue
@@ -95,18 +98,56 @@ class VMPC():
 				self.vel_msg.linear.x = 0.0; self.vel_msg.angular.z = 0.0
 				self.vel_pub.publish(self.vel_msg)
 				self.ctrl_c = True
+			#==================== LogCurrentResults =========================#
+			#Convertion from float to string (to write in a file)
+			# 	text_t = "{:.3f}".format(self.t) 
+			# 	text_h11_p = "{:.3f}".format(float(self.predicted_values[0]))
+			# 	text_h11_c = "{:.3f}".format(float(self.homo_matrix.data[0]))
+
+			# 	text_h12_p = "{:.3f}".format(float(self.predicted_values[1]))
+			# 	text_h12_c = "{:.3f}".format(float(self.homo_matrix.data[1]))
+
+			# 	text_h13_p = "{:.3f}".format(float(self.predicted_values[2]))
+			# 	text_h13_c = "{:.3f}".format(float(self.homo_matrix.data[2]))
+
+			# 	text_h31_p = "{:.3f}".format(float(self.predicted_values[3]))
+			# 	text_h31_c = "{:.3f}".format(float(self.homo_matrix.data[6]))
+
+			# 	text_h32_p = "{:.3f}".format(float(self.predicted_values[4]))
+			# 	text_h32_c = "{:.3f}".format(float(self.homo_matrix.data[7]))
+
+			# 	text_h33_p = "{:.3f}".format(float(self.predicted_values[5]))
+			# 	text_h33_c = "{:.3f}".format(float(self.homo_matrix.data[8]))
+
+			# 	text_V = "{:.3f}".format(V)
+			# 	text_W = "{:.3f}".format(W)
+			# 	text_line = text_t+"\t"+text_h11_p+"\t"+text_h11_c+"\t"+text_h12_p+"\t"+text_h12_c+"\t"+text_h13_p+"\t"+text_h13_c+"\t"+text_h31_p+"\t"+text_h31_c+"\t"+text_h32_p+"\t"+text_h32_c+"\t"+text_h33_p+"\t"+text_h33_c+"\t"+text_V+"\t"+text_W+"\n"
+			# 	#print (text_line)
+
+			# 	file_obj.write(text_line)
+
+		    #================================= Update ============================================#
+	  		#%%%%%%%%%%%%%%%%%% UpdatePredictiveValues(opti_solution) %%%%%%%%%%%%%%%%%%%%%%%%%%%%#
+			self.update_predictive_values()
+			#%%%%%%%%%%%%%%%%%% UpdateStates(opti_solution) %%%%%%%%%%%%%%%%%%%%%%%%%%%%#
+			self.update_state()
+			#%%%%%%%%%%%%%%%%%% PrepareDataForNextOptimizacion(opti_solution) %%%%%%%%%%%%%%%%%%%%#
+			self.set_desired_values()
+			self.reset_state() # This is due to the optimization is done with respect to the robot's frame
+			self.phi_k = self.PHI_TARGET - self.get_rk_theta_rk1()
+			#================================= Update ============================================#
+   
 
 			#//=================== Solve the optimization problem ============================
 			self.vel_ops() #Compute the control signals
 			print("Computing optimal controls ...")
 			print("phi = ", np.rad2deg(self.phi.data))
 			self.vel_msg.linear.x  = self.V_k[0]
-			#print('self.V_k[0] = ',self.V_k[0])
+			print('self.V_k[0] = ',self.V_k[0])
 			V = float(self.V_k[0])
 			self.vel_msg.angular.z = self.angular_velocity[0]
 			print('self.angular_velocity[0] = ', self.angular_velocity[0])
 			W = float(self.angular_velocity[0])
-
 			self.vel_pub.publish(self.vel_msg) #Publish the control signals
 
 			#print(f"Homo current: = {self.homo_matrix.data}")
@@ -124,33 +165,6 @@ class VMPC():
 
 			# self.error_pub.publish(self.error_msg); #Publish the tracking errors
 
-			#Convertion from float to string (to write in a file)
-			# text_t = "{:.3f}".format(self.t) 
-			# text_h11_p = "{:.3f}".format(float(self.predicted_values[0]))
-			# text_h11_c = "{:.3f}".format(float(self.homo_matrix.data[0]))
-
-			# text_h12_p = "{:.3f}".format(float(self.predicted_values[1]))
-			# text_h12_c = "{:.3f}".format(float(self.homo_matrix.data[1]))
-
-			# text_h13_p = "{:.3f}".format(float(self.predicted_values[2]))
-			# text_h13_c = "{:.3f}".format(float(self.homo_matrix.data[2]))
-
-			# text_h31_p = "{:.3f}".format(float(self.predicted_values[3]))
-			# text_h31_c = "{:.3f}".format(float(self.homo_matrix.data[6]))
-
-			# text_h32_p = "{:.3f}".format(float(self.predicted_values[4]))
-			# text_h32_c = "{:.3f}".format(float(self.homo_matrix.data[7]))
-
-			# text_h33_p = "{:.3f}".format(float(self.predicted_values[5]))
-			# text_h33_c = "{:.3f}".format(float(self.homo_matrix.data[8]))
-
-			# text_V = "{:.3f}".format(V)
-			# text_W = "{:.3f}".format(W)
-			# text_line = text_t+"\t"+text_h11_p+"\t"+text_h11_c+"\t"+text_h12_p+"\t"+text_h12_c+"\t"+text_h13_p+"\t"+text_h13_c+"\t"+text_h31_p+"\t"+text_h31_c+"\t"+text_h32_p+"\t"+text_h32_c+"\t"+text_h33_p+"\t"+text_h33_c+"\t"+text_V+"\t"+text_W+"\n"
-			# #print (text_line)
-
-			# file_obj.write(text_line)
-
 		# file_obj.close()
 
 		print("Robot stops, but simulation keeps running\n")
@@ -163,7 +177,7 @@ class VMPC():
 
 	def vel_ops(self):
 		# ============ Optimization to obtain linear velocities and angular velocities in a horizon =================
-		self.HMPC.solve(self.yaw,self.x_k,self.homo_matrix.data,self.d_value.data,self.n_vector.data,self.ck_t_ct_vector.data,self.c_x_r,self.phi.data)#False,self.center_obstacle,self.obstacle_raduis+self.security_margin)
+		self.HMPC.solve(self.x_k,self.d_value.data,self.n_vector.data,self.ck_t_ct_vector.data,self.c_x_r,self.phi.data)#False,self.center_obstacle,self.obstacle_raduis+self.security_margin)
 		self.angular_velocity = self.HMPC.get_Omega_opt_solution()
 		self.V_k = self.HMPC.get_Vopt_solution()
 		self.predicted_values = self.HMPC.get_predicted_values()
@@ -199,12 +213,39 @@ class VMPC():
 		self.vel_pub.publish(self.vel_msg)
 		self.ctrl_c = True
 
+	def reset_state(self):
+		self.x_k[0] = 0.0
+		self.x_k[1] = 0.0
+		self.x_k[2] = 0.0
+
+	def update_predictive_values(self):
+		self.HMPC.update_predictive_values(self.V_k[0],self.angular_velocity[0],self.x_k,self.T)
+
+	def set_desired_values(self):
+		self.HMPC.set_desired_values(self.homo_matrix.data)
+
+	def update_state(self):
+		x_k     = self.x_k[0]
+		y_k     = self.x_k[1]
+		theta_k = self.x_k[2]
+		v       = self.V_k[0]
+		w       = self.angular_velocity[0]
+		
+		self.x_k[0] = x_k + self.T * np.cos(theta_k) * v
+		self.x_k[1] = y_k + self.T * np.sin(theta_k) * v
+		self.x_k[2] = theta_k + self.T * w
+
+	def get_rk_theta_rk1(self):
+		return self.HMPC.get_rk_theta_rk1(self.angular_velocity[0],self.x_k)
+
+
 
 if __name__ == '__main__':
 	try:
 		params_position    = position_params()
 		params_orientation = orientation_params()
 		vision_parameters  = vision_parameters()
-		VMPC(params_position=params_position,params_orientation=params_orientation,vision_parameters=vision_parameters)
+		PHI_TARGET         = 0.0
+		VMPC(params_position=params_position,params_orientation=params_orientation,vision_parameters=vision_parameters,phi_target=PHI_TARGET)
 	except rospy.ROSInterruptException:
 		pass

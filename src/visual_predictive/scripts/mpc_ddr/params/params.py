@@ -11,8 +11,8 @@ def orientation_params():
 
 	delta_min = 0.0  # angle limit
 	delta_max = 2*np.pi
-	alpha = 1e-1 # qp gain
-	beta  = 2e-2 # 2e-2 non linear 
+	alpha = 1e-3 # qp gain
+	beta  = 1e-3 # 2e-2 non linear 
 	lbO   = -1.81829 # lower angular velocity constraint
 	ubO   = 1.81829 # upper angular velocity constraint
 
@@ -29,7 +29,7 @@ def orientation_params():
 
 def position_params():
 
-	alpha1 = 0.2
+	alpha1 = 1e-3
 	alpha2 = 1.2e-1
 	alpha3 = 1.2e-1
 	lbv    = -0.2 # lower velocity constraint
@@ -47,12 +47,12 @@ def position_params():
 
 def vision_parameters():
 
-	b11 = 1e0
-	b12 = 1e0
-	b13 = 1e0
-	b31 = 1e0
-	b32 = 1e0
-	b33 = 1e0
+	b11 = 1e-3
+	b12 = 1e-3
+	b13 = 1e-3
+	b31 = 1e-3
+	b32 = 1e-3
+	b33 = 1e-3
 
 	params = {
 		'b11': b11,
