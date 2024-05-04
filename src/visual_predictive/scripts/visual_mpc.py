@@ -15,7 +15,7 @@ from mpc_ddr.params.params import orientation_params, position_params, vision_pa
 class VMPC():
 
 
-	def __init__(self,params_position=None,params_orientation=None,vision_parameters=None,x_init=0,y_init=0,yaw_init=0,phi_target=0.0,T=0.1,N=15,c_x_r=0.035):
+	def __init__(self,params_position=None,params_orientation=None,vision_parameters=None,x_init=0,y_init=0,yaw_init=0,phi_target=0.0,T=0.1,N=15,c_x_r=0.047,c_z_r=-0.064):
 		rospy.init_node('nonlinear_vmpc')
 		rospy.loginfo('Program has started') #Beginning terminal msg
 		rospy.logwarn("To start the movement, the simulation must be running\n\n")
@@ -33,6 +33,7 @@ class VMPC():
 		self.x          = x_init
 		self.y          = y_init
 		self.c_x_r      = c_x_r #Traslation between robot with respecto the camera x-axis
+		self.c_z_r      = c_z_r
 		self.PHI_TARGET = phi_target*np.pi/180
 		self.phi_k      = self.PHI_TARGET - yaw_init
 
@@ -177,7 +178,7 @@ class VMPC():
 
 	def vel_ops(self):
 		# ============ Optimization to obtain linear velocities and angular velocities in a horizon =================
-		self.HMPC.solve(self.x_k,self.d_value.data,self.n_vector.data,self.ck_t_ct_vector.data,self.c_x_r,self.phi.data)#False,self.center_obstacle,self.obstacle_raduis+self.security_margin)
+		self.HMPC.solve(self.x_k,self.d_value.data,self.n_vector.data,self.ck_t_ct_vector.data,self.c_x_r,self.c_z_r,self.phi.data)#False,self.center_obstacle,self.obstacle_raduis+self.security_margin)
 		self.angular_velocity = self.HMPC.get_Omega_opt_solution()
 		self.V_k = self.HMPC.get_Vopt_solution()
 		self.predicted_values = self.HMPC.get_predicted_values()
