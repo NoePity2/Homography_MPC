@@ -777,3 +777,34 @@ data_py.txt
 # End of https://www.toptal.com/developers/gitignore/api/visualstudio,visualstudiocode,c++,python,jetbrains+all,ros,ros2
 src/visual_predictive/src/folder_matches/*.jpg
 
+build/catkin_generated/stamps/Project/_setup_util.py.stamp
+build/CMakeFiles/CMakeError.log
+build/CMakeFiles/CMakeOutput.log
+build/CMakeFiles/CMakeRuleHashes.txt
+build/CMakeFiles/Makefile.cmake
+build/CMakeFiles/Makefile2
+build/CMakeFiles/progress.marks
+build/CMakeFiles/TargetDirectories.txt
+build/CMakeFiles/3.16.3/CMakeDetermineCompilerABI_C.bin
+build/CMakeFiles/3.16.3/CMakeDetermineCompilerABI_CXX.bin
+build/CMakeFiles/3.16.3/CMakeSystem.cmake
+build/CMakeFiles/3.16.3/CompilerIdC/a.out
+build/CMakeFiles/3.16.3/CompilerIdCXX/a.out
+build/DynamixelSDK/ros/dynamixel_sdk/catkin_generated/ordered_paths.cmake
+build/DynamixelSDK/ros/dynamixel_sdk/catkin_generated/stamps/dynamixel_sdk/setup.py.stamp
+build/gtest/googlemock/CMakeFiles/gmock.dir/progress.make
+build/gtest/googlemock/CMakeFiles/gmock_main.dir/progress.make
+build/gtest/googletest/CMakeFiles/gtest.dir/progress.make
+build/lecturas_laser/CMakeFiles/progress.marks
+build/lecturas_laser/CMakeFiles/lecturas_laser_node.dir/CXX.includecache
+build/lecturas_laser/CMakeFiles/lecturas_laser_node.dir/progress.make
+build/lecturas_laser/CMakeFiles/lecturas_laser_node.dir/src/Ndatos.cpp.o
+build/lecturas_laser/CMakeFiles/std_msgs_generate_messages_cpp.dir/build.make
+build/lecturas_laser/CMakeFiles/std_msgs_generate_messages_cpp.dir/cmake_clean.cmake
+build/lecturas_laser/CMakeFiles/std_msgs_generate_messages_cpp.dir/depend.internal
+build/lecturas_laser/CMakeFiles/std_msgs_generate_messages_cpp.dir/depend.make
+build/lecturas_laser/CMakeFiles/std_msgs_generate_messages_cpp.dir/DependInfo.cmake
+build/lecturas_laser/CMakeFiles/std_msgs_generate_messages_cpp.dir/progress.make
+build/lecturas_laser/CMakeFiles/std_msgs_generate_messages_eus.dir/build.make
+build/lecturas_laser/CMakeFiles/std_msgs_generate_messages_eus.dir/cmake_clean.cmake
+build/lecturas_laser/CMakeFiles/std_msgs_generate_messages_eus.dir/depend.internal
