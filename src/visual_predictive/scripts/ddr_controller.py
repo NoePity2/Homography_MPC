@@ -1,32 +1,31 @@
 import numpy as np
 import matplotlib.pyplot as plt
-import utils.Robot as Robot
-from mpc.nmpc import Pose
-from params.params import orientation_params, position_params
+import mpc_ddr.utils.Robot as Robot
+from mpc_ddr.mpc.nmpc import Pose
+from mpc_ddr.params.params import orientation_params, position_params
 from matplotlib.patches import Circle
 from matplotlib import rc
 
-rc('text', usetex=True)
-plt.rcParams.update({'font.size': 12})
+# rc('text', usetex=True)
+# plt.rcParams.update({'font.size': 12})
 
 T = 0.1 # Time horizon
 N = 15 # number of control intervals
 
 # ============== Linear parameters ==============
-X_ref  = (4)*np.ones((N,1)) # Vector
-Y_ref  = (4)*np.ones((N,1)) # Vector
+X_ref  = (3)*np.ones((N,1)) # Vector
+Y_ref  = (0)*np.ones((N,1)) # Vector
 state_vector = np.array([[0],[0]])
 x  = np.zeros( (3,1) ) 
 
 params_position = position_params()
 
 # =============== Orientation Optimization ===============
-Tethas_ref = 45*(np.pi/180)*np.ones((N,1)) # Vector
+Tethas_ref = 0*(np.pi/180)*np.ones((N,1)) # Vector
 params_orientation = orientation_params()
 theta_k = 0*(np.pi/180)
 
 Pose_opt = Pose(params_position,params_orientation,N,T)
-
 x_new = np.array( [ [0],[0],[0]] )
 
 dt = 0.1
@@ -45,7 +44,7 @@ security_margin   = 0.04
 #============= Ciclo de navegación ============
 for j in range(len(times)):
    # ============ Optimization for angular velocities and linear velocities =================
-   Pose_opt.solve(Tethas_ref,theta_k,state_vector,X_ref,Y_ref,True,center_obstacle,obstacle_raduis+security_margin)
+   Pose_opt.solve(Tethas_ref,theta_k,state_vector,X_ref,Y_ref,False,center_obstacle,obstacle_raduis+security_margin)
    Omega_opt = Pose_opt.get_Omega_opt_solution()
    V_opt     = Pose_opt.get_Vopt_solution()
 
@@ -75,12 +74,12 @@ fig1 = plt.figure()
 ax1 = fig1.add_subplot(2,2,1)
 ax1.plot(robot[:,0],robot[:,1],'r-',alpha=0.25)
 ax1.plot(trajectory[0,:],trajectory[1,:])
-for center in center_obstacle:
-   circle_robot    = Circle(center, obstacle_raduis , color='r')
-   circle_security = Circle(center, obstacle_raduis + security_margin, color='cyan',fill=False,linestyle='--')
-   ax1.add_patch(circle_robot)
-   #ax1.annotate('Obstacle', xy=center_obstacle, xytext=(1.5, 0.25), arrowprops=dict(facecolor='black', shrink=0.05))
-   ax1.add_patch(circle_security)
+# for center in center_obstacle:
+#    circle_robot    = Circle(center, obstacle_raduis , color='r')
+#    circle_security = Circle(center, obstacle_raduis + security_margin, color='cyan',fill=False,linestyle='--')
+#    ax1.add_patch(circle_robot)
+#    #ax1.annotate('Obstacle', xy=center_obstacle, xytext=(1.5, 0.25), arrowprops=dict(facecolor='black', shrink=0.05))
+#    ax1.add_patch(circle_security)
 ax1.grid()
 ax1.set_xlabel("$x$-coordinate [$m$]", fontsize=14)
 ax1.set_ylabel("$y$-coordinate [$m$]", fontsize=14)

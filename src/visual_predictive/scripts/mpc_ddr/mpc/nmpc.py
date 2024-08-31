@@ -18,80 +18,116 @@ class Pose(object):
 		N      = self.N
 		T      = self.T
 
-		# Objective function
-		J = 0
+		x_x = opt.SX.sym('x_x')
+		x_y = opt.SX.sym('x_y')
+		x_theta = opt.SX.sym('x_theta')
 
-		# Variables
-		U = []
+		x_ref = opt.SX.sym('x_ref')
+		y_ref = opt.SX.sym('y_ref')
+		theta_ref = opt.SX.sym('theta_ref')
 
-		# Variable bounds
-		lbU = []
-		ubU = []
+		u_v = opt.SX.sym('u_v')
+		u_w = opt.SX.sym('u_w')
 
-		# Constraints
-		g = []
+		x   = opt.vertcat(x_x,x_y,x_theta)
+		x_r = opt.vertcat(x_ref,y_ref,theta_ref)
+		u   = opt.vertcat(u_v, u_w)
 
-		# Constraint bounds
+		# DDR's kinematic model
+		xdot = opt.vertcat( u_v*opt.cos(x_theta), u_v*opt.sin(x_theta), u_w )
+
+		# Objective term
+		L = params_orientation['alpha_w']*u_w**2 + params_orientation['beta']*(x_theta - theta_ref)**2 + params_position['alpha_v']*u_v**2 + params_position['alpha2']*(x_x - x_ref)**2 + params_position['alpha3']*(x_y - y_ref)**2
+
+		# Fixed step Euler integrator
+		f = opt.Function('f', [x, u, x_r], [xdot, L])
+		X0 = opt.SX.sym('X0', 3)
+		XR = opt.SX.sym('XR', 3)
+		U = opt.SX.sym('U',2)
+		X = X0
+		Q = 0
+		k1, k1_q = f(X, U, XR)
+		X = X + T*k1
+		Q = Q + T*k1_q
+	
+		F = opt.Function('F', [X0, U, XR], [X, Q],['x0','u','xr'],['xf','qf'])
+
+		# Start with an empty NLP
+		w   = []
+		w0  = []
+		lbw = []
+		ubw = []
+		J   = 0
+		g   = []
 		lbg = []
 		ubg = []
 
-		# Obstacle´s Constraint
-		gl = []
-
-		sum_x = 0
-		sum_y = 0
-		sum_Omega = 0
+		# initial conditions
+		Xk = opt.SX.sym('X0', 3)
+		w += [Xk]
+		lbw += [state_vector[0], state_vector[1], theta_k]
+		ubw += [state_vector[0], state_vector[1], theta_k ]
 		# Loop over all control horizon
-		for i in range(0, N):
-			# Create variables for the angular velocities
-			omega_i = opt.SX.sym('omega_' + str(i))
 
-			# Create variables for the linear velocities
-			v_i = opt.SX.sym('v_' + str(i))
+		# Formulate the NLP
+		for k in range(N):
+		    # Create variables for the angular velocities
+		    omega_i = opt.SX.sym('omega_' + str(k))
 
-			# Add to the list of variables
-			U += [v_i, omega_i]
+		    # Create variables for the linear velocities
+		    v_i = opt.SX.sym('v_' + str(k))
 
-			lbU += [params_position['lbv'], params_orientation['lbO']]
-			ubU += [params_position['ubv'], params_orientation['ubO']]
+		    # Add to the list of variables
+		    Uk = opt.vertcat(v_i, omega_i)
+		    w   += [Uk]
+		    lbw += [params_position['lbv'], params_orientation['lbO']]
+		    ubw += [params_position['ubv'], params_orientation['ubO']]
 
-			# cost function
-			sum_Omega += omega_i
-			theta_kn  = theta_k + T*sum_Omega   
+		    # Integrate till the end of the interval
+		    Fk = F(x0=Xk, u=Uk, xr=[X_ref[k], Y_ref[k], Tethas_ref[k]])
+		    Xk_end = Fk['xf']
+		    J=J+Fk['qf']
 
-			J += ( params_orientation['alpha']*omega_i**2 + params_orientation['beta']*(theta_kn - Tethas_ref[i])**2 )
-							
-			g.append( theta_kn  )
-			lbg.append( params_orientation['delta_min'] )
-			ubg.append( params_orientation['delta_max'] )
+		    # New NLP variable for state at end of interval
+		    Xk = opt.SX.sym('X_' + str(k+1), 3)
+		    w   += [Xk]
+		    lbw += [-opt.inf, -opt.inf, -opt.inf]
+		    ubw += [ opt.inf,  opt.inf,  opt.inf]
 
-			# cost function
-			sum_x += np.cos(theta_kn) * v_i
-			x_kn  = state_vector[0] + T*sum_x
-			sum_y += np.sin(theta_kn) * v_i
-			y_kn  = state_vector[1] + T*sum_y   
+		    # if(k==(N-1)):
+		    # 	J = J + 10000*( (Xk[0] - X_ref[k])**2 + (Xk[1] - Y_ref[k])**2 + (Xk[2] - Tethas_ref[k])**2 )
 
-			J += ( params_position['alpha1']*v_i**2 + params_position['alpha2']*(x_kn - X_ref[i])**2 + params_position['alpha3']*(y_kn - Y_ref[i])**2 )
-			
-			# Obstacle´s constraints
-			if(is_obstacle):
-				d = np.sqrt( (x_kn - center_obstacle[0])**2 + (y_kn - center_obstacle[1])**2 )
-				J += 1/( 1 + np.exp(2.25*(d - 0.05)) )
-				#g.append(  (x_kn - center_obstacle[0])**2 + (y_kn - center_obstacle[1])**2 )
-				#lbg.append( (obstacle_radius)**2 )
-				#ubg.append( opt.inf )
+		    # Add equality constraint
+		    g   += [Xk_end-Xk]
+		    lbg += [0, 0, 0]
+		    ubg += [0, 0, 0]
+
+		    if(is_obstacle):
+		    	distance = np.sqrt( (Xk[0] - center_obstacle[0][0])**2 + (Xk[1] - center_obstacle[0][1])**2 )
+		    	F_max   = 20
+		    	a       = 100
+		    	b       = 0.5
+		    	c       = 1
+		    	exp_arg = a*( c*distance - b - obstacle_radius )
+		    	den = 1 + np.exp( exp_arg )
+		    	J += (F_max)/(den)
+		    	distance = np.sqrt( (Xk[0] - center_obstacle[1][0])**2 + (Xk[1] - center_obstacle[1][1])**2 )
+		    	exp_arg = a*( c*distance - b - obstacle_radius )
+		    	den = 1 + np.exp( exp_arg )
+		    	J += (F_max)/(den)
+
 
 			 
-		# Formulate QP
-		sqp = {'x':opt.vertcat(*U), 'f':J, 'g':opt.vertcat(*g)}
+		# Create an NLP solver
+		prob = {'f': J, 'x': opt.vertcat(*w), 'g': opt.vertcat(*g)}
+		#solver = opt.qpsol('solver', 'qpoases', prob)
+		solver = opt.nlpsol('solver', 'ipopt', prob)
 
-		# Solve with qpoases
-		#solver   = opt.qpsol('solver', 'qpoases', sqp)
-		solver   = opt.nlpsol('S', 'ipopt', sqp)
-		solution = solver(lbx=lbU, ubx=ubU, lbg=lbg, ubg=ubg)
+		# Solve the NLP
+		solution = solver(lbx=lbw, ubx=ubw, lbg=lbg, ubg=ubg)
 
-		self.V_opt = solution['x'][0::2]
-		self.Omega_opt = solution['x'][1::2]
+		self.V_opt = solution['x'][3::5]
+		self.Omega_opt = solution['x'][4::5]
 		self.min_function_value = solution['f']
 
 	def get_Vopt_solution(self):
@@ -102,6 +138,7 @@ class Pose(object):
 
 	def get_min_fuction_value(self):
 		return self.min_function_value
+
 
 class HomographyMPC:
 	# def __init__(self):
