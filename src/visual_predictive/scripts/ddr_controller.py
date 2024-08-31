@@ -4,7 +4,7 @@ import mpc_ddr.utils.Robot as Robot
 from mpc_ddr.mpc.nmpc import Pose
 from mpc_ddr.params.params import orientation_params, position_params
 from matplotlib.patches import Circle
-from matplotlib import rc
+#from matplotlib import rc
 
 # rc('text', usetex=True)
 # plt.rcParams.update({'font.size': 12})

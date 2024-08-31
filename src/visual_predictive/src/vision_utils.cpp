@@ -274,12 +274,12 @@ void EstimateHomography(const cv::Mat &refImg, const cv::Mat &currImg, const Mat
     H = H/H(1,1);
     //std::cout << "H: " << H << std::endl;
 
-    std::stringstream ss;
-    ss << "/home/noe/ddr_ws/src/visual_predictive/src/folder_matches/" << counter << ".jpg";
+    // std::stringstream ss;
+    // ss << "/home/noe/ddr_ws/src/visual_predictive/src/folder_matches/" << counter << ".jpg";
 
-    cv::Mat out;
-    cv::drawMatches(refImg, keypointsRef, currImg, keypointsCurr, goodMatches, out);
-    cv::imwrite(ss.str(),out);
+    // cv::Mat out;
+    // cv::drawMatches(refImg, keypointsRef, currImg, keypointsCurr, goodMatches, out);
+    // cv::imwrite(ss.str(),out);
 
     // cv::Mat out;
     // cv::drawKeypoints(currImg, keypointsCurr, out, cv::Scalar::all(-1), cv::DrawMatchesFlags::DEFAULT);

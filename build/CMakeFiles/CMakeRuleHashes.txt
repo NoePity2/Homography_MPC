@@ -6,6 +6,7 @@ b45aeb2c47ffd8ac26e276f3668e2997 /home/noe/ddr_ws/devel/include/astra_camera/Dev
 ba40554e459f69bf36fa0456d1b5324d /home/noe/ddr_ws/devel/include/astra_camera/GetCameraInfo.h
 41f0bb31b155c9b3c68a5065e66a76d7 /home/noe/ddr_ws/devel/include/astra_camera/GetCameraParams.h
 ba8fc1a34bb3b6bc6877fb8f4ab60083 /home/noe/ddr_ws/devel/include/astra_camera/GetDeviceInfo.h
+c87b27a88146334a2ea53d4249cb8e25 /home/noe/ddr_ws/devel/include/astra_camera/GetDouble.h
 d5f0f088b06ff54c24a6f264a9767d74 /home/noe/ddr_ws/devel/include/astra_camera/GetInt32.h
 7c91d5161fe9322079d944dae76fa9a9 /home/noe/ddr_ws/devel/include/astra_camera/GetString.h
 b5e1e94e98f2a77e666ff53350c420bb /home/noe/ddr_ws/devel/include/astra_camera/Metadata.h
@@ -96,6 +97,7 @@ b32ed301c059baf2deeba00030521486 /home/noe/ddr_ws/devel/lib/python3/dist-package
 8499ce85a65720f7d75d2830f36f94c6 /home/noe/ddr_ws/devel/lib/python3/dist-packages/astra_camera/srv/_GetCameraInfo.py
 5d371ed56254b3fdd9cd3fd2d49ec074 /home/noe/ddr_ws/devel/lib/python3/dist-packages/astra_camera/srv/_GetCameraParams.py
 3b99002c9c234aa2d84cedc1ca9ef426 /home/noe/ddr_ws/devel/lib/python3/dist-packages/astra_camera/srv/_GetDeviceInfo.py
+2dd29e2b8629a3b891d9597457441a33 /home/noe/ddr_ws/devel/lib/python3/dist-packages/astra_camera/srv/_GetDouble.py
 43ed355e75affd09d1f7d023c4755c24 /home/noe/ddr_ws/devel/lib/python3/dist-packages/astra_camera/srv/_GetInt32.py
 f7619eae7504ac690cb55cedc1f3073f /home/noe/ddr_ws/devel/lib/python3/dist-packages/astra_camera/srv/_GetString.py
 57b968f12f10522aba7b20d2e74cf568 /home/noe/ddr_ws/devel/lib/python3/dist-packages/astra_camera/srv/_SetInt32.py
@@ -187,6 +189,7 @@ cec234d16a37a17b030827330f20683f /home/noe/ddr_ws/devel/share/common-lisp/ros/as
 6c915868231f725384f24189bf16cfb3 /home/noe/ddr_ws/devel/share/common-lisp/ros/astra_camera/srv/GetCameraInfo.lisp
 ff3d6d5da84d4a275c530f9344d8dad2 /home/noe/ddr_ws/devel/share/common-lisp/ros/astra_camera/srv/GetCameraParams.lisp
 a5ec105dd0ba9a1d07666a8b6dc91e96 /home/noe/ddr_ws/devel/share/common-lisp/ros/astra_camera/srv/GetDeviceInfo.lisp
+5503e51c08f869a021ea559874ecce41 /home/noe/ddr_ws/devel/share/common-lisp/ros/astra_camera/srv/GetDouble.lisp
 cd5d27e8c1178d95908b7c62c7135b32 /home/noe/ddr_ws/devel/share/common-lisp/ros/astra_camera/srv/GetInt32.lisp
 24de27c0e767d8aeab42d5bb18747205 /home/noe/ddr_ws/devel/share/common-lisp/ros/astra_camera/srv/GetString.lisp
 9af018b44166ab83afb1796df6bf2ee3 /home/noe/ddr_ws/devel/share/common-lisp/ros/astra_camera/srv/SetInt32.lisp
@@ -275,6 +278,7 @@ ec1c8c73990c835b3b8f6fc179043bf7 /home/noe/ddr_ws/devel/share/gennodejs/ros/astr
 ecd19b2a6f2438ef50c2b338c7575e4c /home/noe/ddr_ws/devel/share/gennodejs/ros/astra_camera/srv/GetCameraInfo.js
 da672c1fbcbe7ab663fcecc160bf20cc /home/noe/ddr_ws/devel/share/gennodejs/ros/astra_camera/srv/GetCameraParams.js
 c1b13a62afbd24ab8bc6ca58f90ba164 /home/noe/ddr_ws/devel/share/gennodejs/ros/astra_camera/srv/GetDeviceInfo.js
+84dd17b0c2be98ebd2bdf2c7f9c2a1f1 /home/noe/ddr_ws/devel/share/gennodejs/ros/astra_camera/srv/GetDouble.js
 dc07abe8fe4c6f9aca8ea7434e608444 /home/noe/ddr_ws/devel/share/gennodejs/ros/astra_camera/srv/GetInt32.js
 5405f4623aa638aeb6fcb30bcccadcf7 /home/noe/ddr_ws/devel/share/gennodejs/ros/astra_camera/srv/GetString.js
 70b15e58abc0bd80811928399de6869c /home/noe/ddr_ws/devel/share/gennodejs/ros/astra_camera/srv/SetInt32.js
@@ -364,6 +368,7 @@ c28c8b9b98e1762c5f6aa110f75110b7 /home/noe/ddr_ws/devel/share/roseus/ros/astra_c
 777e267afac01d877b464b6eb1af670c /home/noe/ddr_ws/devel/share/roseus/ros/astra_camera/srv/GetCameraInfo.l
 28cf07c3686fdd7728869ebbc0fa4cc4 /home/noe/ddr_ws/devel/share/roseus/ros/astra_camera/srv/GetCameraParams.l
 1f63f4c0b691ea3a37f95efc6c0a4c8d /home/noe/ddr_ws/devel/share/roseus/ros/astra_camera/srv/GetDeviceInfo.l
+267ad77f7a8cdae6c34f55de5893f5cd /home/noe/ddr_ws/devel/share/roseus/ros/astra_camera/srv/GetDouble.l
 c69e7908002f852bfcba182ca2c6ef6e /home/noe/ddr_ws/devel/share/roseus/ros/astra_camera/srv/GetInt32.l
 b7b91b9f50130d72938baa49692a1e8b /home/noe/ddr_ws/devel/share/roseus/ros/astra_camera/srv/GetString.l
 f7cb61999f845c8a6060e95c33d42e80 /home/noe/ddr_ws/devel/share/roseus/ros/astra_camera/srv/SetInt32.l
@@ -454,6 +459,7 @@ d6c00ee6da62c910eb5c45a4d29aac6c ros_astra_camera/CMakeFiles/_astra_camera_gener
 bc5ba3e8e110ff4ad54e384e271b30fb ros_astra_camera/CMakeFiles/_astra_camera_generate_messages_check_deps_GetCameraInfo
 c27c16b11b66844de5814531993a58b5 ros_astra_camera/CMakeFiles/_astra_camera_generate_messages_check_deps_GetCameraParams
 2d8a1afba4cc6a97e0281eaab735f1cc ros_astra_camera/CMakeFiles/_astra_camera_generate_messages_check_deps_GetDeviceInfo
+89975802f4e5a68d3918737638aa494b ros_astra_camera/CMakeFiles/_astra_camera_generate_messages_check_deps_GetDouble
 8fe595fa78326e975ab43f4d666a3ba9 ros_astra_camera/CMakeFiles/_astra_camera_generate_messages_check_deps_GetInt32
 6342b5e85ed6cc60769b41f3c98a3d24 ros_astra_camera/CMakeFiles/_astra_camera_generate_messages_check_deps_GetString
 4c456a92a53238279bfb808275dfd9f5 ros_astra_camera/CMakeFiles/_astra_camera_generate_messages_check_deps_Metadata
