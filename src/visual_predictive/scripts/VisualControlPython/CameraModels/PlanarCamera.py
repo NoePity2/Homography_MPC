@@ -1,7 +1,7 @@
 """
 	Monday May 21st, 21:46:59 2018
-	@author: robotics lab (Patricia Tavares & Gerardo Rodriguez)
-	@email: patricia.tavares@cimat.mx, gerardo.rodriguez@cimat.mx
+	@author: robotics lab (Patricia Tavares, Gerardo Rodriguez, HUgo Martinez, Noé Aldana)
+	@email: patricia.tavares@cimat.mx, gerardo.rodriguez@cimat.mx, noe.aldana@cimat.mx
 	version: 1.0
 	This code implements a camera.
 """
@@ -11,8 +11,8 @@
 """
 import numpy as np
 from math import cos, sin, pi
-from Utils import Rotations
-from Utils import Arrow3D
+from VisualControlPython.Utils import Rotations
+from VisualControlPython.Utils import Arrow3D
 
 class PlanarCamera:
 	

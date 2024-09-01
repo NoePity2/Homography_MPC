@@ -31,7 +31,7 @@ if __name__ == "__main__":
     target_y        = 0.0
     target_z        = 1.0
     target_roll     = np.deg2rad(0.0) # Degrees to radians 'x'
-    target_pitch    = np.deg2rad(90.0) # Degrees to radians 'y'
+    target_pitch    = np.deg2rad(angle_fixed) # Degrees to radians 'y'
     target_yaw      = np.deg2rad(0.0) # Degrees to radians 'z'
 
     camera1 = PlanarCamera() # Set the target camera
@@ -45,7 +45,7 @@ if __name__ == "__main__":
     init_z_pos     = 1.0
 
     init_roll    = np.deg2rad(0.0)
-    init_pitch   = np.deg2rad(90.0)
+    init_pitch   = np.deg2rad(angle_fixed)
     init_yaw     = np.deg2rad(0.0)
 
     camera2 = PlanarCamera() # Set the init camera

@@ -4,9 +4,15 @@ import mpc_ddr.utils.Robot as Robot
 from mpc_ddr.mpc.nmpc import Pose
 from mpc_ddr.params.params import orientation_params, position_params
 from matplotlib.patches import Circle
-#from matplotlib import rc
 
-# rc('text', usetex=True)
+import matplotlib.patches as mpatches
+
+from VisualControlPython.CameraModels.PlanarCamera import PlanarCamera
+from VisualControlPython.homography import (homogToRt,H_from_points,Rodrigues)
+
+from matplotlib import rc
+
+rc('text', usetex=True)
 # plt.rcParams.update({'font.size': 12})
 
 T = 0.1 # Time horizon
@@ -41,6 +47,55 @@ center_obstacle   = [ center_obstacle_1, center_obstacle_2 ]
 obstacle_raduis   = 0.15
 security_margin   = 0.04
 
+#==================== Visión terms ========================#
+#Create the world points
+nPoints = 4
+xx       = np.array([3.5,3.5,3.5,3.5])
+yy       = np.array([-0.5,0.5,0.5,-0.5])
+zz       = np.array([0.5,0.5,1.5,1.5])
+
+w_points = np.vstack([xx, yy, zz])
+
+# Set the camera target position
+angle_fixed = 90.
+
+# Target position
+target_x        = 3.0
+target_y        = 0.0
+target_z        = 1.0
+target_roll     = np.deg2rad(0.0) # Degrees to radians 'x'
+target_pitch    = np.deg2rad(angle_fixed) # Degrees to radians 'y'
+target_yaw      = np.deg2rad(0.0) # Degrees to radians 'z'
+
+camera1 = PlanarCamera() # Set the target camera
+camera1.set_position(target_x, target_y, target_z, target_roll, target_pitch, target_yaw)
+
+p1 = camera1.projection(w_points, nPoints) # Project the points for camera 1
+
+# Initial position
+init_x_pos     = 0.0
+init_y_pos     = 0.0
+init_z_pos     = 1.0
+
+init_roll    = np.deg2rad(0.0)
+init_pitch   = np.deg2rad(angle_fixed)
+init_yaw     = np.deg2rad(0.0)
+
+camera2 = PlanarCamera() # Set the init camera
+camera2.set_position(init_x_pos, init_y_pos, init_z_pos, init_roll, init_pitch, init_yaw)
+p2 = camera2.projection(w_points, nPoints)
+pixelCoordsArray  = np.zeros((2*nPoints,len(times)))   # List to save points positions on the image
+averageErrorArray = np.zeros(len(times))               # Matrix to save error points positions
+z_camera_Array    = np.zeros(len(times)) 
+
+x_pos = init_x_pos
+y_pos = init_y_pos
+z_pos = init_z_pos
+
+pitch = init_pitch
+yaw   = init_yaw
+roll  = init_roll
+
 #============= Ciclo de navegación ============
 for j in range(len(times)):
    # ============ Optimization for angular velocities and linear velocities =================
@@ -56,6 +111,18 @@ for j in range(len(times)):
    theta_k = x[2]
    x_new = x
 
+   x_pos = x[0, 0]
+   y_pos = x[1, 0]
+   yaw   = x[2, 0]
+   
+   camera2.set_position(x_pos, y_pos, z_pos, roll, pitch, yaw)
+   p2 = camera2.projection(w_points, nPoints)
+
+   pixelCoordsArray[:,j] = p2.reshape((2*nPoints,1), order='F')[:,0]
+   pixel_error           = p2-p1
+   averageErrorArray[j]  = np.mean(np.linalg.norm(pixel_error.reshape((2*nPoints,1), order='F')))
+   z_camera_Array[j]     = z_pos
+
    trajectory[0][j] = x[0]
    trajectory[1][j] = x[1]
    trajectory[2][j] = x[2]
@@ -68,6 +135,60 @@ for j in range(len(times)):
 
 
 robot = Robot.dib_robot([trajectory[0,-1],trajectory[1,-1],trajectory[2,-1]],0.05)
+
+# ======================================  Draw cameras ========================================
+
+fig = plt.figure()
+fig.suptitle('World setting')
+
+ax = fig.add_subplot(1, 2, 1, projection='3d')
+ax = fig.gca(projection='3d')
+ax.plot(xx, yy, zz, 'o')
+
+ax.plot(trajectory[0,:],trajectory[1,:],z_camera_Array) # Plot camera trajectory
+
+
+axis_scale      = 0.5
+camera_scale    = 0.09
+camera1.draw_camera(ax, scale=camera_scale, color='red')
+camera1.draw_frame(ax, scale=axis_scale, c='black')
+
+camera2.set_position(x_pos, y_pos, z_pos, roll, pitch, yaw)
+camera2.draw_camera(ax, scale=camera_scale, color='brown')
+camera2.draw_frame(ax, scale=axis_scale, c='black')
+
+camera2.set_position(init_x_pos, init_y_pos, init_z_pos, init_roll, init_pitch, init_yaw)
+camera2.draw_camera(ax, scale=camera_scale, color='blue')
+camera2.draw_frame(ax, scale=axis_scale, c='black')
+limit_x = 1.0
+limit_y = 1.0
+limit_z = 1.0
+
+ax.set_xlabel("$w_x$")
+ax.set_ylabel("$w_y$")
+ax.set_zlabel("$w_z$")
+ax.grid(True)
+ax.set_title('World setting')
+
+ # ======================================  Plot the pixels ==========================================
+ax = fig.add_subplot(1, 2, 2)
+
+p20 = pixelCoordsArray[:,0].reshape((2,nPoints), order='F')
+ax.plot(p1[0, :],  p1[1, :], 'o', color='red')
+ax.plot(p20[0, :], p20[1, :], 'o', color='blue')
+
+ax.set_ylim(0, camera1.height)
+ax.set_xlim(0, camera1.width)
+ax.grid(True)
+
+ax.legend([mpatches.Patch(color='red'),
+         mpatches.Patch(color='blue')],
+         ['Desired', 'Init'], loc=2)
+
+ax.plot(pixelCoordsArray[0,0:j], pixelCoordsArray[1,0:j])
+ax.plot(pixelCoordsArray[2,0:j], pixelCoordsArray[3,0:j])
+ax.plot(pixelCoordsArray[4,0:j], pixelCoordsArray[5,0:j])
+ax.plot(pixelCoordsArray[6,0:j], pixelCoordsArray[7,0:j])
 
 
 fig1 = plt.figure()
