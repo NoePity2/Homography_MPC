@@ -150,9 +150,9 @@ class PlanarCamera:
 	def draw_camera(self, ax, color='cyan', scale=1.0):
 		#CAmera points: to be expressed in the camera frame;
 		CAMup=scale*np.array([[-1,-1,  1, 1, 1.5,-1.5,-1, 1 ],[ 1, 1,  1, 1, 1.5, 1.5, 1, 1 ],[ 2,-2, -2, 2,   3,   3, 2, 2 ],])
-		Ri2w    = np.dot(Rotations.rotox(pi), self.R)
+		Ri2w    = np.dot(Rotations.rotox(1.5*pi), self.R)
 		trasl   = self.t.reshape(3, -1)
-		CAMupTRASF = Ri2w.dot(CAMup) + trasl;
+		CAMupTRASF = Ri2w.dot(CAMup) + trasl
 		CAMdwn=scale*np.array([[-1,-1,  1, 1, 1.5,-1.5,-1, 1  ],[ -1,-1, -1,-1,-1.5,-1.5,-1,-1 ],[  2,-2, -2, 2,   3,   3, 2, 2 ]])
 		CAMdwnTRASF     = Ri2w.dot( CAMdwn ) + trasl
 		CAMupTRASFm     = CAMupTRASF
@@ -189,14 +189,14 @@ class PlanarCamera:
 			scale_y = scale
 		if scale_z is None:
 			scale_z = scale
-		R = np.dot(Rotations.rotox(pi), self.R)
+		R = np.dot(Rotations.rotox(1.5*pi), self.R)
 		t = self.t.reshape(3, -1)
 		# Camera reference frame
 		Oc = scale   * np.array([[0.,0,0]]).T
 		Xc = scale_x * np.array([[1.,0,0]]).T
 		Yc = scale_y * np.array([[0.,1,0]]).T
 		Zc = scale_z * np.array([[0.,0,1]]).T
-		Ri2w    = R;
+		Ri2w    = R
 		Oc1     = Ri2w.dot(Oc) + t
 		Xc1     = Ri2w.dot(Xc) + t
 		Yc1     = Ri2w.dot(Yc) + t

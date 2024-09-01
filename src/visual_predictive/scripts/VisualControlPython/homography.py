@@ -2,7 +2,7 @@
 """
 Created on Thu Jun 30 15:47:41 2016
 
-@author: robotics
+@author: Noé Aldana
 """
 import numpy as np
 import math
@@ -24,9 +24,7 @@ def homogToRt(H):
     c,d     = unitize( 1+s1*s3, a1*b1 )
     e,f     = unitize( -b/s1, -a/s3 )
     v1      = V[0,:] # V es la transpuesta de la que regresa matlab
-    #v1      = V[:,0]
     v3      = V[2,:]
-    #v3      = V[:,2]
     n1      = b*v1-a*v3
     n2      = b*v1+a*v3
     R1      = U.dot(np.array([[c,0,d], [0,1,0], [-d,0,c]]).dot(V) )
@@ -48,7 +46,7 @@ def homogToRt(H):
         R = R2.T
         t = zeta*t2
         n = n2
-        return R,t,n
+        return R,t,n,(1/zeta)
         
 def H_from_points(fp,tp):
     """ Find homography H, such that fp is mapped to tp
@@ -85,9 +83,6 @@ def H_from_points(fp,tp):
                     -tp[0][i]*fp[0][i],-tp[0][i]*fp[1][i],-tp[0][i]]
         A[2*i+1] = [0,0,0,fp[0][i],fp[1][i],1,
                     -tp[1][i]*fp[0][i],-tp[1][i]*fp[1][i],-tp[1][i]]
-    #PASO 1.INCLUIR ECUACIONES PARA LA ESTIMACION DE HOMOGRAFIA        
-#        A[2*i] = 1
-#        A[2*i+1] = 1
     
     U,S,V = np.linalg.svd(A)
     H = V[8].reshape((3,3))
@@ -96,7 +91,7 @@ def H_from_points(fp,tp):
     H = np.dot(np.linalg.inv(C2),np.dot(H,C1))
     
     # normalize and return
-    return H / H[2,2]
+    return H / H[1,1]
     
 def Rodrigues(R):
     
@@ -147,5 +142,10 @@ def rotation_from_matrix(matrix):
         sina = (R[0, 2] + (cosa-1.0)*direction[0]*direction[2]) / direction[1]
     else:
         sina = (R[2, 1] + (cosa-1.0)*direction[1]*direction[2]) / direction[0]
+    
     angle = math.atan2(sina, cosa)
+
     return angle, direction, point
+
+def yaw_angle_from_rotationMatrix(rotation_matrix):
+    return np.arctan(rotation_matrix[0, 2] / rotation_matrix[0, 0]);

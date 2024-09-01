@@ -121,7 +121,7 @@ if __name__ == "__main__":
         He = K2_inv.dot(H.dot(K1));
         #PASO 2.CALCULAR LA MATRIZ HOMOGRAFIA EUCLIDIANA
         #He = H
-        R,tr,normal = homogToRt(He)
+        R,tr,normal,d = homogToRt(He)
 
         u = Rodrigues(R)
         # ==================================== CONTROL COMPUTATION =======================================
