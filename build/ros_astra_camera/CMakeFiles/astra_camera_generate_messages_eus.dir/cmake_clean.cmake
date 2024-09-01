@@ -7,6 +7,7 @@ file(REMOVE_RECURSE
   "/home/noe/ddr_ws/devel/share/roseus/ros/astra_camera/srv/GetCameraInfo.l"
   "/home/noe/ddr_ws/devel/share/roseus/ros/astra_camera/srv/GetCameraParams.l"
   "/home/noe/ddr_ws/devel/share/roseus/ros/astra_camera/srv/GetDeviceInfo.l"
+  "/home/noe/ddr_ws/devel/share/roseus/ros/astra_camera/srv/GetDouble.l"
   "/home/noe/ddr_ws/devel/share/roseus/ros/astra_camera/srv/GetInt32.l"
   "/home/noe/ddr_ws/devel/share/roseus/ros/astra_camera/srv/GetString.l"
   "/home/noe/ddr_ws/devel/share/roseus/ros/astra_camera/srv/SetInt32.l"

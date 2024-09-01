@@ -6,6 +6,7 @@ file(REMOVE_RECURSE
   "/home/noe/ddr_ws/devel/share/gennodejs/ros/astra_camera/srv/GetCameraInfo.js"
   "/home/noe/ddr_ws/devel/share/gennodejs/ros/astra_camera/srv/GetCameraParams.js"
   "/home/noe/ddr_ws/devel/share/gennodejs/ros/astra_camera/srv/GetDeviceInfo.js"
+  "/home/noe/ddr_ws/devel/share/gennodejs/ros/astra_camera/srv/GetDouble.js"
   "/home/noe/ddr_ws/devel/share/gennodejs/ros/astra_camera/srv/GetInt32.js"
   "/home/noe/ddr_ws/devel/share/gennodejs/ros/astra_camera/srv/GetString.js"
   "/home/noe/ddr_ws/devel/share/gennodejs/ros/astra_camera/srv/SetInt32.js"

@@ -5,6 +5,7 @@ file(REMOVE_RECURSE
   "/home/noe/ddr_ws/devel/include/astra_camera/GetCameraInfo.h"
   "/home/noe/ddr_ws/devel/include/astra_camera/GetCameraParams.h"
   "/home/noe/ddr_ws/devel/include/astra_camera/GetDeviceInfo.h"
+  "/home/noe/ddr_ws/devel/include/astra_camera/GetDouble.h"
   "/home/noe/ddr_ws/devel/include/astra_camera/GetInt32.h"
   "/home/noe/ddr_ws/devel/include/astra_camera/GetString.h"
   "/home/noe/ddr_ws/devel/include/astra_camera/Metadata.h"

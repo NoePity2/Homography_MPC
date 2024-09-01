@@ -6,6 +6,7 @@ file(REMOVE_RECURSE
   "/home/noe/ddr_ws/devel/share/common-lisp/ros/astra_camera/srv/GetCameraInfo.lisp"
   "/home/noe/ddr_ws/devel/share/common-lisp/ros/astra_camera/srv/GetCameraParams.lisp"
   "/home/noe/ddr_ws/devel/share/common-lisp/ros/astra_camera/srv/GetDeviceInfo.lisp"
+  "/home/noe/ddr_ws/devel/share/common-lisp/ros/astra_camera/srv/GetDouble.lisp"
   "/home/noe/ddr_ws/devel/share/common-lisp/ros/astra_camera/srv/GetInt32.lisp"
   "/home/noe/ddr_ws/devel/share/common-lisp/ros/astra_camera/srv/GetString.lisp"
   "/home/noe/ddr_ws/devel/share/common-lisp/ros/astra_camera/srv/SetInt32.lisp"

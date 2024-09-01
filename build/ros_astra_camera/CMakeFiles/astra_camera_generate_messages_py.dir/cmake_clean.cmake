@@ -7,6 +7,7 @@ file(REMOVE_RECURSE
   "/home/noe/ddr_ws/devel/lib/python3/dist-packages/astra_camera/srv/_GetCameraInfo.py"
   "/home/noe/ddr_ws/devel/lib/python3/dist-packages/astra_camera/srv/_GetCameraParams.py"
   "/home/noe/ddr_ws/devel/lib/python3/dist-packages/astra_camera/srv/_GetDeviceInfo.py"
+  "/home/noe/ddr_ws/devel/lib/python3/dist-packages/astra_camera/srv/_GetDouble.py"
   "/home/noe/ddr_ws/devel/lib/python3/dist-packages/astra_camera/srv/_GetInt32.py"
   "/home/noe/ddr_ws/devel/lib/python3/dist-packages/astra_camera/srv/_GetString.py"
   "/home/noe/ddr_ws/devel/lib/python3/dist-packages/astra_camera/srv/_SetInt32.py"

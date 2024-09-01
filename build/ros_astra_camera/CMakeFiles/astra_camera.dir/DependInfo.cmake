@@ -30,12 +30,11 @@ set(CMAKE_TARGET_DEFINITIONS_CXX
 
 # The include file search paths:
 set(CMAKE_CXX_TARGET_INCLUDE_PATH
+  "/home/noe/ddr_ws/devel/include"
   "ros_astra_camera/include"
   "/home/noe/ddr_ws/src/ros_astra_camera/include"
   "/opt/ros/noetic/include"
   "/opt/ros/noetic/share/xmlrpcpp/cmake/../../../include/xmlrpcpp"
-  "/home/noe/ddr_ws/devel/include"
-  "/home/noe/ddr_ws/src/ros_astra_camera/BEFORE"
   "/usr/include/opencv4"
   )
 

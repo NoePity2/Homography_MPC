@@ -15,6 +15,9 @@ ros_astra_camera/CMakeFiles/astra_camera.dir/src/d2c_viewer.cpp.o: /home/noe/ddr
 ros_astra_camera/CMakeFiles/astra_camera.dir/src/d2c_viewer.cpp.o: /home/noe/ddr_ws/devel/include/astra_camera/GetDeviceInfo.h
 ros_astra_camera/CMakeFiles/astra_camera.dir/src/d2c_viewer.cpp.o: /home/noe/ddr_ws/devel/include/astra_camera/GetDeviceInfoRequest.h
 ros_astra_camera/CMakeFiles/astra_camera.dir/src/d2c_viewer.cpp.o: /home/noe/ddr_ws/devel/include/astra_camera/GetDeviceInfoResponse.h
+ros_astra_camera/CMakeFiles/astra_camera.dir/src/d2c_viewer.cpp.o: /home/noe/ddr_ws/devel/include/astra_camera/GetDouble.h
+ros_astra_camera/CMakeFiles/astra_camera.dir/src/d2c_viewer.cpp.o: /home/noe/ddr_ws/devel/include/astra_camera/GetDoubleRequest.h
+ros_astra_camera/CMakeFiles/astra_camera.dir/src/d2c_viewer.cpp.o: /home/noe/ddr_ws/devel/include/astra_camera/GetDoubleResponse.h
 ros_astra_camera/CMakeFiles/astra_camera.dir/src/d2c_viewer.cpp.o: /home/noe/ddr_ws/devel/include/astra_camera/GetInt32.h
 ros_astra_camera/CMakeFiles/astra_camera.dir/src/d2c_viewer.cpp.o: /home/noe/ddr_ws/devel/include/astra_camera/GetInt32Request.h
 ros_astra_camera/CMakeFiles/astra_camera.dir/src/d2c_viewer.cpp.o: /home/noe/ddr_ws/devel/include/astra_camera/GetInt32Response.h
@@ -288,6 +291,9 @@ ros_astra_camera/CMakeFiles/astra_camera.dir/src/ob_camera_info.cpp.o: /home/noe
 ros_astra_camera/CMakeFiles/astra_camera.dir/src/ob_camera_info.cpp.o: /home/noe/ddr_ws/devel/include/astra_camera/GetDeviceInfo.h
 ros_astra_camera/CMakeFiles/astra_camera.dir/src/ob_camera_info.cpp.o: /home/noe/ddr_ws/devel/include/astra_camera/GetDeviceInfoRequest.h
 ros_astra_camera/CMakeFiles/astra_camera.dir/src/ob_camera_info.cpp.o: /home/noe/ddr_ws/devel/include/astra_camera/GetDeviceInfoResponse.h
+ros_astra_camera/CMakeFiles/astra_camera.dir/src/ob_camera_info.cpp.o: /home/noe/ddr_ws/devel/include/astra_camera/GetDouble.h
+ros_astra_camera/CMakeFiles/astra_camera.dir/src/ob_camera_info.cpp.o: /home/noe/ddr_ws/devel/include/astra_camera/GetDoubleRequest.h
+ros_astra_camera/CMakeFiles/astra_camera.dir/src/ob_camera_info.cpp.o: /home/noe/ddr_ws/devel/include/astra_camera/GetDoubleResponse.h
 ros_astra_camera/CMakeFiles/astra_camera.dir/src/ob_camera_info.cpp.o: /home/noe/ddr_ws/devel/include/astra_camera/GetInt32.h
 ros_astra_camera/CMakeFiles/astra_camera.dir/src/ob_camera_info.cpp.o: /home/noe/ddr_ws/devel/include/astra_camera/GetInt32Request.h
 ros_astra_camera/CMakeFiles/astra_camera.dir/src/ob_camera_info.cpp.o: /home/noe/ddr_ws/devel/include/astra_camera/GetInt32Response.h
@@ -614,6 +620,9 @@ ros_astra_camera/CMakeFiles/astra_camera.dir/src/ob_camera_node.cpp.o: /home/noe
 ros_astra_camera/CMakeFiles/astra_camera.dir/src/ob_camera_node.cpp.o: /home/noe/ddr_ws/devel/include/astra_camera/GetDeviceInfo.h
 ros_astra_camera/CMakeFiles/astra_camera.dir/src/ob_camera_node.cpp.o: /home/noe/ddr_ws/devel/include/astra_camera/GetDeviceInfoRequest.h
 ros_astra_camera/CMakeFiles/astra_camera.dir/src/ob_camera_node.cpp.o: /home/noe/ddr_ws/devel/include/astra_camera/GetDeviceInfoResponse.h
+ros_astra_camera/CMakeFiles/astra_camera.dir/src/ob_camera_node.cpp.o: /home/noe/ddr_ws/devel/include/astra_camera/GetDouble.h
+ros_astra_camera/CMakeFiles/astra_camera.dir/src/ob_camera_node.cpp.o: /home/noe/ddr_ws/devel/include/astra_camera/GetDoubleRequest.h
+ros_astra_camera/CMakeFiles/astra_camera.dir/src/ob_camera_node.cpp.o: /home/noe/ddr_ws/devel/include/astra_camera/GetDoubleResponse.h
 ros_astra_camera/CMakeFiles/astra_camera.dir/src/ob_camera_node.cpp.o: /home/noe/ddr_ws/devel/include/astra_camera/GetInt32.h
 ros_astra_camera/CMakeFiles/astra_camera.dir/src/ob_camera_node.cpp.o: /home/noe/ddr_ws/devel/include/astra_camera/GetInt32Request.h
 ros_astra_camera/CMakeFiles/astra_camera.dir/src/ob_camera_node.cpp.o: /home/noe/ddr_ws/devel/include/astra_camera/GetInt32Response.h
@@ -940,6 +949,9 @@ ros_astra_camera/CMakeFiles/astra_camera.dir/src/ob_camera_node_factory.cpp.o: /
 ros_astra_camera/CMakeFiles/astra_camera.dir/src/ob_camera_node_factory.cpp.o: /home/noe/ddr_ws/devel/include/astra_camera/GetDeviceInfo.h
 ros_astra_camera/CMakeFiles/astra_camera.dir/src/ob_camera_node_factory.cpp.o: /home/noe/ddr_ws/devel/include/astra_camera/GetDeviceInfoRequest.h
 ros_astra_camera/CMakeFiles/astra_camera.dir/src/ob_camera_node_factory.cpp.o: /home/noe/ddr_ws/devel/include/astra_camera/GetDeviceInfoResponse.h
+ros_astra_camera/CMakeFiles/astra_camera.dir/src/ob_camera_node_factory.cpp.o: /home/noe/ddr_ws/devel/include/astra_camera/GetDouble.h
+ros_astra_camera/CMakeFiles/astra_camera.dir/src/ob_camera_node_factory.cpp.o: /home/noe/ddr_ws/devel/include/astra_camera/GetDoubleRequest.h
+ros_astra_camera/CMakeFiles/astra_camera.dir/src/ob_camera_node_factory.cpp.o: /home/noe/ddr_ws/devel/include/astra_camera/GetDoubleResponse.h
 ros_astra_camera/CMakeFiles/astra_camera.dir/src/ob_camera_node_factory.cpp.o: /home/noe/ddr_ws/devel/include/astra_camera/GetInt32.h
 ros_astra_camera/CMakeFiles/astra_camera.dir/src/ob_camera_node_factory.cpp.o: /home/noe/ddr_ws/devel/include/astra_camera/GetInt32Request.h
 ros_astra_camera/CMakeFiles/astra_camera.dir/src/ob_camera_node_factory.cpp.o: /home/noe/ddr_ws/devel/include/astra_camera/GetInt32Response.h
@@ -1341,6 +1353,9 @@ ros_astra_camera/CMakeFiles/astra_camera.dir/src/point_cloud_proc/point_cloud_xy
 ros_astra_camera/CMakeFiles/astra_camera.dir/src/point_cloud_proc/point_cloud_xyz.cpp.o: /home/noe/ddr_ws/devel/include/astra_camera/GetDeviceInfo.h
 ros_astra_camera/CMakeFiles/astra_camera.dir/src/point_cloud_proc/point_cloud_xyz.cpp.o: /home/noe/ddr_ws/devel/include/astra_camera/GetDeviceInfoRequest.h
 ros_astra_camera/CMakeFiles/astra_camera.dir/src/point_cloud_proc/point_cloud_xyz.cpp.o: /home/noe/ddr_ws/devel/include/astra_camera/GetDeviceInfoResponse.h
+ros_astra_camera/CMakeFiles/astra_camera.dir/src/point_cloud_proc/point_cloud_xyz.cpp.o: /home/noe/ddr_ws/devel/include/astra_camera/GetDouble.h
+ros_astra_camera/CMakeFiles/astra_camera.dir/src/point_cloud_proc/point_cloud_xyz.cpp.o: /home/noe/ddr_ws/devel/include/astra_camera/GetDoubleRequest.h
+ros_astra_camera/CMakeFiles/astra_camera.dir/src/point_cloud_proc/point_cloud_xyz.cpp.o: /home/noe/ddr_ws/devel/include/astra_camera/GetDoubleResponse.h
 ros_astra_camera/CMakeFiles/astra_camera.dir/src/point_cloud_proc/point_cloud_xyz.cpp.o: /home/noe/ddr_ws/devel/include/astra_camera/GetInt32.h
 ros_astra_camera/CMakeFiles/astra_camera.dir/src/point_cloud_proc/point_cloud_xyz.cpp.o: /home/noe/ddr_ws/devel/include/astra_camera/GetInt32Request.h
 ros_astra_camera/CMakeFiles/astra_camera.dir/src/point_cloud_proc/point_cloud_xyz.cpp.o: /home/noe/ddr_ws/devel/include/astra_camera/GetInt32Response.h
@@ -1631,6 +1646,9 @@ ros_astra_camera/CMakeFiles/astra_camera.dir/src/point_cloud_proc/point_cloud_xy
 ros_astra_camera/CMakeFiles/astra_camera.dir/src/point_cloud_proc/point_cloud_xyzrgb.cpp.o: /home/noe/ddr_ws/devel/include/astra_camera/GetDeviceInfo.h
 ros_astra_camera/CMakeFiles/astra_camera.dir/src/point_cloud_proc/point_cloud_xyzrgb.cpp.o: /home/noe/ddr_ws/devel/include/astra_camera/GetDeviceInfoRequest.h
 ros_astra_camera/CMakeFiles/astra_camera.dir/src/point_cloud_proc/point_cloud_xyzrgb.cpp.o: /home/noe/ddr_ws/devel/include/astra_camera/GetDeviceInfoResponse.h
+ros_astra_camera/CMakeFiles/astra_camera.dir/src/point_cloud_proc/point_cloud_xyzrgb.cpp.o: /home/noe/ddr_ws/devel/include/astra_camera/GetDouble.h
+ros_astra_camera/CMakeFiles/astra_camera.dir/src/point_cloud_proc/point_cloud_xyzrgb.cpp.o: /home/noe/ddr_ws/devel/include/astra_camera/GetDoubleRequest.h
+ros_astra_camera/CMakeFiles/astra_camera.dir/src/point_cloud_proc/point_cloud_xyzrgb.cpp.o: /home/noe/ddr_ws/devel/include/astra_camera/GetDoubleResponse.h
 ros_astra_camera/CMakeFiles/astra_camera.dir/src/point_cloud_proc/point_cloud_xyzrgb.cpp.o: /home/noe/ddr_ws/devel/include/astra_camera/GetInt32.h
 ros_astra_camera/CMakeFiles/astra_camera.dir/src/point_cloud_proc/point_cloud_xyzrgb.cpp.o: /home/noe/ddr_ws/devel/include/astra_camera/GetInt32Request.h
 ros_astra_camera/CMakeFiles/astra_camera.dir/src/point_cloud_proc/point_cloud_xyzrgb.cpp.o: /home/noe/ddr_ws/devel/include/astra_camera/GetInt32Response.h
@@ -1921,6 +1939,9 @@ ros_astra_camera/CMakeFiles/astra_camera.dir/src/ros_service.cpp.o: /home/noe/dd
 ros_astra_camera/CMakeFiles/astra_camera.dir/src/ros_service.cpp.o: /home/noe/ddr_ws/devel/include/astra_camera/GetDeviceInfo.h
 ros_astra_camera/CMakeFiles/astra_camera.dir/src/ros_service.cpp.o: /home/noe/ddr_ws/devel/include/astra_camera/GetDeviceInfoRequest.h
 ros_astra_camera/CMakeFiles/astra_camera.dir/src/ros_service.cpp.o: /home/noe/ddr_ws/devel/include/astra_camera/GetDeviceInfoResponse.h
+ros_astra_camera/CMakeFiles/astra_camera.dir/src/ros_service.cpp.o: /home/noe/ddr_ws/devel/include/astra_camera/GetDouble.h
+ros_astra_camera/CMakeFiles/astra_camera.dir/src/ros_service.cpp.o: /home/noe/ddr_ws/devel/include/astra_camera/GetDoubleRequest.h
+ros_astra_camera/CMakeFiles/astra_camera.dir/src/ros_service.cpp.o: /home/noe/ddr_ws/devel/include/astra_camera/GetDoubleResponse.h
 ros_astra_camera/CMakeFiles/astra_camera.dir/src/ros_service.cpp.o: /home/noe/ddr_ws/devel/include/astra_camera/GetInt32.h
 ros_astra_camera/CMakeFiles/astra_camera.dir/src/ros_service.cpp.o: /home/noe/ddr_ws/devel/include/astra_camera/GetInt32Request.h
 ros_astra_camera/CMakeFiles/astra_camera.dir/src/ros_service.cpp.o: /home/noe/ddr_ws/devel/include/astra_camera/GetInt32Response.h
@@ -2246,6 +2267,9 @@ ros_astra_camera/CMakeFiles/astra_camera.dir/src/utils.cpp.o: /home/noe/ddr_ws/d
 ros_astra_camera/CMakeFiles/astra_camera.dir/src/utils.cpp.o: /home/noe/ddr_ws/devel/include/astra_camera/GetDeviceInfo.h
 ros_astra_camera/CMakeFiles/astra_camera.dir/src/utils.cpp.o: /home/noe/ddr_ws/devel/include/astra_camera/GetDeviceInfoRequest.h
 ros_astra_camera/CMakeFiles/astra_camera.dir/src/utils.cpp.o: /home/noe/ddr_ws/devel/include/astra_camera/GetDeviceInfoResponse.h
+ros_astra_camera/CMakeFiles/astra_camera.dir/src/utils.cpp.o: /home/noe/ddr_ws/devel/include/astra_camera/GetDouble.h
+ros_astra_camera/CMakeFiles/astra_camera.dir/src/utils.cpp.o: /home/noe/ddr_ws/devel/include/astra_camera/GetDoubleRequest.h
+ros_astra_camera/CMakeFiles/astra_camera.dir/src/utils.cpp.o: /home/noe/ddr_ws/devel/include/astra_camera/GetDoubleResponse.h
 ros_astra_camera/CMakeFiles/astra_camera.dir/src/utils.cpp.o: /home/noe/ddr_ws/devel/include/astra_camera/GetInt32.h
 ros_astra_camera/CMakeFiles/astra_camera.dir/src/utils.cpp.o: /home/noe/ddr_ws/devel/include/astra_camera/GetInt32Request.h
 ros_astra_camera/CMakeFiles/astra_camera.dir/src/utils.cpp.o: /home/noe/ddr_ws/devel/include/astra_camera/GetInt32Response.h
@@ -2378,6 +2402,9 @@ ros_astra_camera/CMakeFiles/astra_camera.dir/src/uvc_camera_driver.cpp.o: /home/
 ros_astra_camera/CMakeFiles/astra_camera.dir/src/uvc_camera_driver.cpp.o: /home/noe/ddr_ws/devel/include/astra_camera/GetDeviceInfo.h
 ros_astra_camera/CMakeFiles/astra_camera.dir/src/uvc_camera_driver.cpp.o: /home/noe/ddr_ws/devel/include/astra_camera/GetDeviceInfoRequest.h
 ros_astra_camera/CMakeFiles/astra_camera.dir/src/uvc_camera_driver.cpp.o: /home/noe/ddr_ws/devel/include/astra_camera/GetDeviceInfoResponse.h
+ros_astra_camera/CMakeFiles/astra_camera.dir/src/uvc_camera_driver.cpp.o: /home/noe/ddr_ws/devel/include/astra_camera/GetDouble.h
+ros_astra_camera/CMakeFiles/astra_camera.dir/src/uvc_camera_driver.cpp.o: /home/noe/ddr_ws/devel/include/astra_camera/GetDoubleRequest.h
+ros_astra_camera/CMakeFiles/astra_camera.dir/src/uvc_camera_driver.cpp.o: /home/noe/ddr_ws/devel/include/astra_camera/GetDoubleResponse.h
 ros_astra_camera/CMakeFiles/astra_camera.dir/src/uvc_camera_driver.cpp.o: /home/noe/ddr_ws/devel/include/astra_camera/GetInt32.h
 ros_astra_camera/CMakeFiles/astra_camera.dir/src/uvc_camera_driver.cpp.o: /home/noe/ddr_ws/devel/include/astra_camera/GetInt32Request.h
 ros_astra_camera/CMakeFiles/astra_camera.dir/src/uvc_camera_driver.cpp.o: /home/noe/ddr_ws/devel/include/astra_camera/GetInt32Response.h

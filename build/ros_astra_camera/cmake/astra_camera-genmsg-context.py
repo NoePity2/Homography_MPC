@@ -1,7 +1,7 @@
 # generated from genmsg/cmake/pkg-genmsg.context.in
 
 messages_str = "/home/noe/ddr_ws/src/ros_astra_camera/msg/DeviceInfo.msg;/home/noe/ddr_ws/src/ros_astra_camera/msg/Extrinsics.msg;/home/noe/ddr_ws/src/ros_astra_camera/msg/Metadata.msg"
-services_str = "/home/noe/ddr_ws/src/ros_astra_camera/srv/GetBool.srv;/home/noe/ddr_ws/src/ros_astra_camera/srv/GetCameraInfo.srv;/home/noe/ddr_ws/src/ros_astra_camera/srv/GetCameraParams.srv;/home/noe/ddr_ws/src/ros_astra_camera/srv/GetDeviceInfo.srv;/home/noe/ddr_ws/src/ros_astra_camera/srv/GetInt32.srv;/home/noe/ddr_ws/src/ros_astra_camera/srv/GetString.srv;/home/noe/ddr_ws/src/ros_astra_camera/srv/SetInt32.srv;/home/noe/ddr_ws/src/ros_astra_camera/srv/SetString.srv"
+services_str = "/home/noe/ddr_ws/src/ros_astra_camera/srv/GetBool.srv;/home/noe/ddr_ws/src/ros_astra_camera/srv/GetCameraInfo.srv;/home/noe/ddr_ws/src/ros_astra_camera/srv/GetCameraParams.srv;/home/noe/ddr_ws/src/ros_astra_camera/srv/GetDeviceInfo.srv;/home/noe/ddr_ws/src/ros_astra_camera/srv/GetDouble.srv;/home/noe/ddr_ws/src/ros_astra_camera/srv/GetInt32.srv;/home/noe/ddr_ws/src/ros_astra_camera/srv/GetString.srv;/home/noe/ddr_ws/src/ros_astra_camera/srv/SetInt32.srv;/home/noe/ddr_ws/src/ros_astra_camera/srv/SetString.srv"
 pkg_name = "astra_camera"
 dependencies_str = "std_msgs;sensor_msgs"
 langs = "gencpp;geneus;genlisp;gennodejs;genpy"

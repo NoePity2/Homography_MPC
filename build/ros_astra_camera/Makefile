@@ -468,21 +468,6 @@ _astra_camera_generate_messages_check_deps_DeviceInfo/fast:
 .PHONY : _astra_camera_generate_messages_check_deps_DeviceInfo/fast
 
 # Convenience name for target.
-ros_astra_camera/CMakeFiles/cleanup_shm_node.dir/rule:
-	cd /home/noe/ddr_ws/build && $(MAKE) -f CMakeFiles/Makefile2 ros_astra_camera/CMakeFiles/cleanup_shm_node.dir/rule
-.PHONY : ros_astra_camera/CMakeFiles/cleanup_shm_node.dir/rule
-
-# Convenience name for target.
-cleanup_shm_node: ros_astra_camera/CMakeFiles/cleanup_shm_node.dir/rule
-
-.PHONY : cleanup_shm_node
-
-# fast build rule for target.
-cleanup_shm_node/fast:
-	cd /home/noe/ddr_ws/build && $(MAKE) -f ros_astra_camera/CMakeFiles/cleanup_shm_node.dir/build.make ros_astra_camera/CMakeFiles/cleanup_shm_node.dir/build
-.PHONY : cleanup_shm_node/fast
-
-# Convenience name for target.
 ros_astra_camera/CMakeFiles/astra_camera_gencpp.dir/rule:
 	cd /home/noe/ddr_ws/build && $(MAKE) -f CMakeFiles/Makefile2 ros_astra_camera/CMakeFiles/astra_camera_gencpp.dir/rule
 .PHONY : ros_astra_camera/CMakeFiles/astra_camera_gencpp.dir/rule
@@ -601,6 +586,21 @@ dynamic_reconfigure_generate_messages_lisp: ros_astra_camera/CMakeFiles/dynamic_
 dynamic_reconfigure_generate_messages_lisp/fast:
 	cd /home/noe/ddr_ws/build && $(MAKE) -f ros_astra_camera/CMakeFiles/dynamic_reconfigure_generate_messages_lisp.dir/build.make ros_astra_camera/CMakeFiles/dynamic_reconfigure_generate_messages_lisp.dir/build
 .PHONY : dynamic_reconfigure_generate_messages_lisp/fast
+
+# Convenience name for target.
+ros_astra_camera/CMakeFiles/_astra_camera_generate_messages_check_deps_GetDouble.dir/rule:
+	cd /home/noe/ddr_ws/build && $(MAKE) -f CMakeFiles/Makefile2 ros_astra_camera/CMakeFiles/_astra_camera_generate_messages_check_deps_GetDouble.dir/rule
+.PHONY : ros_astra_camera/CMakeFiles/_astra_camera_generate_messages_check_deps_GetDouble.dir/rule
+
+# Convenience name for target.
+_astra_camera_generate_messages_check_deps_GetDouble: ros_astra_camera/CMakeFiles/_astra_camera_generate_messages_check_deps_GetDouble.dir/rule
+
+.PHONY : _astra_camera_generate_messages_check_deps_GetDouble
+
+# fast build rule for target.
+_astra_camera_generate_messages_check_deps_GetDouble/fast:
+	cd /home/noe/ddr_ws/build && $(MAKE) -f ros_astra_camera/CMakeFiles/_astra_camera_generate_messages_check_deps_GetDouble.dir/build.make ros_astra_camera/CMakeFiles/_astra_camera_generate_messages_check_deps_GetDouble.dir/build
+.PHONY : _astra_camera_generate_messages_check_deps_GetDouble/fast
 
 # Convenience name for target.
 ros_astra_camera/CMakeFiles/std_srvs_generate_messages_nodejs.dir/rule:
@@ -886,33 +886,6 @@ _astra_camera_generate_messages_check_deps_GetCameraInfo: ros_astra_camera/CMake
 _astra_camera_generate_messages_check_deps_GetCameraInfo/fast:
 	cd /home/noe/ddr_ws/build && $(MAKE) -f ros_astra_camera/CMakeFiles/_astra_camera_generate_messages_check_deps_GetCameraInfo.dir/build.make ros_astra_camera/CMakeFiles/_astra_camera_generate_messages_check_deps_GetCameraInfo.dir/build
 .PHONY : _astra_camera_generate_messages_check_deps_GetCameraInfo/fast
-
-src/astra_cleanup_shm_node.o: src/astra_cleanup_shm_node.cpp.o
-
-.PHONY : src/astra_cleanup_shm_node.o
-
-# target to build an object file
-src/astra_cleanup_shm_node.cpp.o:
-	cd /home/noe/ddr_ws/build && $(MAKE) -f ros_astra_camera/CMakeFiles/cleanup_shm_node.dir/build.make ros_astra_camera/CMakeFiles/cleanup_shm_node.dir/src/astra_cleanup_shm_node.cpp.o
-.PHONY : src/astra_cleanup_shm_node.cpp.o
-
-src/astra_cleanup_shm_node.i: src/astra_cleanup_shm_node.cpp.i
-
-.PHONY : src/astra_cleanup_shm_node.i
-
-# target to preprocess a source file
-src/astra_cleanup_shm_node.cpp.i:
-	cd /home/noe/ddr_ws/build && $(MAKE) -f ros_astra_camera/CMakeFiles/cleanup_shm_node.dir/build.make ros_astra_camera/CMakeFiles/cleanup_shm_node.dir/src/astra_cleanup_shm_node.cpp.i
-.PHONY : src/astra_cleanup_shm_node.cpp.i
-
-src/astra_cleanup_shm_node.s: src/astra_cleanup_shm_node.cpp.s
-
-.PHONY : src/astra_cleanup_shm_node.s
-
-# target to generate assembly for a file
-src/astra_cleanup_shm_node.cpp.s:
-	cd /home/noe/ddr_ws/build && $(MAKE) -f ros_astra_camera/CMakeFiles/cleanup_shm_node.dir/build.make ros_astra_camera/CMakeFiles/cleanup_shm_node.dir/src/astra_cleanup_shm_node.cpp.s
-.PHONY : src/astra_cleanup_shm_node.cpp.s
 
 src/d2c_viewer.o: src/d2c_viewer.cpp.o
 
@@ -1269,7 +1242,6 @@ help:
 	@echo "... std_srvs_generate_messages_py"
 	@echo "... astra_camera_genpy"
 	@echo "... _astra_camera_generate_messages_check_deps_DeviceInfo"
-	@echo "... cleanup_shm_node"
 	@echo "... astra_camera_gencpp"
 	@echo "... std_srvs_generate_messages_eus"
 	@echo "... tf2_msgs_generate_messages_cpp"
@@ -1278,6 +1250,7 @@ help:
 	@echo "... dynamic_reconfigure_generate_messages_eus"
 	@echo "... std_srvs_generate_messages_lisp"
 	@echo "... dynamic_reconfigure_generate_messages_lisp"
+	@echo "... _astra_camera_generate_messages_check_deps_GetDouble"
 	@echo "... std_srvs_generate_messages_nodejs"
 	@echo "... dynamic_reconfigure_generate_messages_py"
 	@echo "... tf2_msgs_generate_messages_py"
@@ -1299,9 +1272,6 @@ help:
 	@echo "... _astra_camera_generate_messages_check_deps_Metadata"
 	@echo "... actionlib_generate_messages_nodejs"
 	@echo "... _astra_camera_generate_messages_check_deps_GetCameraInfo"
-	@echo "... src/astra_cleanup_shm_node.o"
-	@echo "... src/astra_cleanup_shm_node.i"
-	@echo "... src/astra_cleanup_shm_node.s"
 	@echo "... src/d2c_viewer.o"
 	@echo "... src/d2c_viewer.i"
 	@echo "... src/d2c_viewer.s"

@@ -413,6 +413,8 @@ vector
 -
 map
 -
+memory
+-
 boost/array.hpp
 -
 boost/call_traits.hpp
@@ -671,7 +673,7 @@ string
 -
 vector
 -
-map
+memory
 -
 ros/types.h
 -
@@ -689,7 +691,7 @@ string
 -
 vector
 -
-map
+memory
 -
 ros/types.h
 -

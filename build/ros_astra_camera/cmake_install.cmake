@@ -67,6 +67,7 @@ if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_
     "/home/noe/ddr_ws/src/ros_astra_camera/srv/GetCameraInfo.srv"
     "/home/noe/ddr_ws/src/ros_astra_camera/srv/GetCameraParams.srv"
     "/home/noe/ddr_ws/src/ros_astra_camera/srv/GetDeviceInfo.srv"
+    "/home/noe/ddr_ws/src/ros_astra_camera/srv/GetDouble.srv"
     "/home/noe/ddr_ws/src/ros_astra_camera/srv/GetInt32.srv"
     "/home/noe/ddr_ws/src/ros_astra_camera/srv/GetString.srv"
     "/home/noe/ddr_ws/src/ros_astra_camera/srv/SetInt32.srv"
@@ -126,15 +127,15 @@ if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_
      NOT IS_SYMLINK "$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}/lib/libastra_camera.so")
     file(RPATH_CHECK
          FILE "$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}/lib/libastra_camera.so"
-         RPATH "")
+         RPATH ":/home/noe/ddr_ws/src/ros_astra_camera/include/openni2_redist/x64")
   endif()
   file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/lib" TYPE SHARED_LIBRARY FILES "/home/noe/ddr_ws/devel/lib/libastra_camera.so")
   if(EXISTS "$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}/lib/libastra_camera.so" AND
      NOT IS_SYMLINK "$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}/lib/libastra_camera.so")
     file(RPATH_CHANGE
          FILE "$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}/lib/libastra_camera.so"
-         OLD_RPATH "/home/noe/ddr_ws/src/ros_astra_camera/include/openni2_redist/x64:/home/noe/ddr_ws/src/ros_astra_camera/opencv_calib3d:/home/noe/ddr_ws/src/ros_astra_camera/opencv_core:/home/noe/ddr_ws/src/ros_astra_camera/opencv_dnn:/home/noe/ddr_ws/src/ros_astra_camera/opencv_features2d:/home/noe/ddr_ws/src/ros_astra_camera/opencv_flann:/home/noe/ddr_ws/src/ros_astra_camera/opencv_highgui:/home/noe/ddr_ws/src/ros_astra_camera/opencv_imgcodecs:/home/noe/ddr_ws/src/ros_astra_camera/opencv_imgproc:/home/noe/ddr_ws/src/ros_astra_camera/opencv_ml:/home/noe/ddr_ws/src/ros_astra_camera/opencv_objdetect:/home/noe/ddr_ws/src/ros_astra_camera/opencv_photo:/home/noe/ddr_ws/src/ros_astra_camera/opencv_stitching:/home/noe/ddr_ws/src/ros_astra_camera/opencv_video:/home/noe/ddr_ws/src/ros_astra_camera/opencv_videoio:/home/noe/ddr_ws/src/ros_astra_camera/opencv_aruco:/home/noe/ddr_ws/src/ros_astra_camera/opencv_bgsegm:/home/noe/ddr_ws/src/ros_astra_camera/opencv_bioinspired:/home/noe/ddr_ws/src/ros_astra_camera/opencv_ccalib:/home/noe/ddr_ws/src/ros_astra_camera/opencv_datasets:/home/noe/ddr_ws/src/ros_astra_camera/opencv_dnn_objdetect:/home/noe/ddr_ws/src/ros_astra_camera/opencv_dnn_superres:/home/noe/ddr_ws/src/ros_astra_camera/opencv_dpm:/home/noe/ddr_ws/src/ros_astra_camera/opencv_face:/home/noe/ddr_ws/src/ros_astra_camera/opencv_freetype:/home/noe/ddr_ws/src/ros_astra_camera/opencv_fuzzy:/home/noe/ddr_ws/src/ros_astra_camera/opencv_hdf:/home/noe/ddr_ws/src/ros_astra_camera/opencv_hfs:/home/noe/ddr_ws/src/ros_astra_camera/opencv_img_hash:/home/noe/ddr_ws/src/ros_astra_camera/opencv_line_descriptor:/home/noe/ddr_ws/src/ros_astra_camera/opencv_optflow:/home/noe/ddr_ws/src/ros_astra_camera/opencv_phase_unwrapping:/home/noe/ddr_ws/src/ros_astra_camera/opencv_plot:/home/noe/ddr_ws/src/ros_astra_camera/opencv_quality:/home/noe/ddr_ws/src/ros_astra_camera/opencv_reg:/home/noe/ddr_ws/src/ros_astra_camera/opencv_rgbd:/home/noe/ddr_ws/src/ros_astra_camera/opencv_saliency:/home/noe/ddr_ws/src/ros_astra_camera/opencv_shape:/home/noe/ddr_ws/src/ros_astra_camera/opencv_stereo:/home/noe/ddr_ws/src/ros_astra_camera/opencv_structured_light:/home/noe/ddr_ws/src/ros_astra_camera/opencv_superres:/home/noe/ddr_ws/src/ros_astra_camera/opencv_surface_matching:/home/noe/ddr_ws/src/ros_astra_camera/opencv_text:/home/noe/ddr_ws/src/ros_astra_camera/opencv_tracking:/home/noe/ddr_ws/src/ros_astra_camera/opencv_videostab:/home/noe/ddr_ws/src/ros_astra_camera/opencv_viz:/home/noe/ddr_ws/src/ros_astra_camera/opencv_ximgproc:/home/noe/ddr_ws/src/ros_astra_camera/opencv_xobjdetect:/home/noe/ddr_ws/src/ros_astra_camera/opencv_xphoto:/opt/ros/noetic/lib:"
-         NEW_RPATH "")
+         OLD_RPATH ":/home/noe/ddr_ws/src/ros_astra_camera/include/openni2_redist/x64:/opt/ros/noetic/lib:"
+         NEW_RPATH ":/home/noe/ddr_ws/src/ros_astra_camera/include/openni2_redist/x64")
     if(CMAKE_INSTALL_DO_STRIP)
       execute_process(COMMAND "/usr/bin/strip" "$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}/lib/libastra_camera.so")
     endif()
@@ -149,15 +150,15 @@ if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_
      NOT IS_SYMLINK "$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}/lib/astra_camera/astra_camera_node")
     file(RPATH_CHECK
          FILE "$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}/lib/astra_camera/astra_camera_node"
-         RPATH "")
+         RPATH ":/home/noe/ddr_ws/src/ros_astra_camera/include/openni2_redist/x64")
   endif()
   file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/lib/astra_camera" TYPE EXECUTABLE FILES "/home/noe/ddr_ws/devel/lib/astra_camera/astra_camera_node")
   if(EXISTS "$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}/lib/astra_camera/astra_camera_node" AND
      NOT IS_SYMLINK "$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}/lib/astra_camera/astra_camera_node")
     file(RPATH_CHANGE
          FILE "$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}/lib/astra_camera/astra_camera_node"
-         OLD_RPATH "/home/noe/ddr_ws/src/ros_astra_camera/include/openni2_redist/x64:/home/noe/ddr_ws/src/ros_astra_camera/opencv_calib3d:/home/noe/ddr_ws/src/ros_astra_camera/opencv_core:/home/noe/ddr_ws/src/ros_astra_camera/opencv_dnn:/home/noe/ddr_ws/src/ros_astra_camera/opencv_features2d:/home/noe/ddr_ws/src/ros_astra_camera/opencv_flann:/home/noe/ddr_ws/src/ros_astra_camera/opencv_highgui:/home/noe/ddr_ws/src/ros_astra_camera/opencv_imgcodecs:/home/noe/ddr_ws/src/ros_astra_camera/opencv_imgproc:/home/noe/ddr_ws/src/ros_astra_camera/opencv_ml:/home/noe/ddr_ws/src/ros_astra_camera/opencv_objdetect:/home/noe/ddr_ws/src/ros_astra_camera/opencv_photo:/home/noe/ddr_ws/src/ros_astra_camera/opencv_stitching:/home/noe/ddr_ws/src/ros_astra_camera/opencv_video:/home/noe/ddr_ws/src/ros_astra_camera/opencv_videoio:/home/noe/ddr_ws/src/ros_astra_camera/opencv_aruco:/home/noe/ddr_ws/src/ros_astra_camera/opencv_bgsegm:/home/noe/ddr_ws/src/ros_astra_camera/opencv_bioinspired:/home/noe/ddr_ws/src/ros_astra_camera/opencv_ccalib:/home/noe/ddr_ws/src/ros_astra_camera/opencv_datasets:/home/noe/ddr_ws/src/ros_astra_camera/opencv_dnn_objdetect:/home/noe/ddr_ws/src/ros_astra_camera/opencv_dnn_superres:/home/noe/ddr_ws/src/ros_astra_camera/opencv_dpm:/home/noe/ddr_ws/src/ros_astra_camera/opencv_face:/home/noe/ddr_ws/src/ros_astra_camera/opencv_freetype:/home/noe/ddr_ws/src/ros_astra_camera/opencv_fuzzy:/home/noe/ddr_ws/src/ros_astra_camera/opencv_hdf:/home/noe/ddr_ws/src/ros_astra_camera/opencv_hfs:/home/noe/ddr_ws/src/ros_astra_camera/opencv_img_hash:/home/noe/ddr_ws/src/ros_astra_camera/opencv_line_descriptor:/home/noe/ddr_ws/src/ros_astra_camera/opencv_optflow:/home/noe/ddr_ws/src/ros_astra_camera/opencv_phase_unwrapping:/home/noe/ddr_ws/src/ros_astra_camera/opencv_plot:/home/noe/ddr_ws/src/ros_astra_camera/opencv_quality:/home/noe/ddr_ws/src/ros_astra_camera/opencv_reg:/home/noe/ddr_ws/src/ros_astra_camera/opencv_rgbd:/home/noe/ddr_ws/src/ros_astra_camera/opencv_saliency:/home/noe/ddr_ws/src/ros_astra_camera/opencv_shape:/home/noe/ddr_ws/src/ros_astra_camera/opencv_stereo:/home/noe/ddr_ws/src/ros_astra_camera/opencv_structured_light:/home/noe/ddr_ws/src/ros_astra_camera/opencv_superres:/home/noe/ddr_ws/src/ros_astra_camera/opencv_surface_matching:/home/noe/ddr_ws/src/ros_astra_camera/opencv_text:/home/noe/ddr_ws/src/ros_astra_camera/opencv_tracking:/home/noe/ddr_ws/src/ros_astra_camera/opencv_videostab:/home/noe/ddr_ws/src/ros_astra_camera/opencv_viz:/home/noe/ddr_ws/src/ros_astra_camera/opencv_ximgproc:/home/noe/ddr_ws/src/ros_astra_camera/opencv_xobjdetect:/home/noe/ddr_ws/src/ros_astra_camera/opencv_xphoto:/home/noe/ddr_ws/devel/lib:/opt/ros/noetic/lib:"
-         NEW_RPATH "")
+         OLD_RPATH ":/home/noe/ddr_ws/src/ros_astra_camera/include/openni2_redist/x64:/home/noe/ddr_ws/devel/lib:/opt/ros/noetic/lib:"
+         NEW_RPATH ":/home/noe/ddr_ws/src/ros_astra_camera/include/openni2_redist/x64")
     if(CMAKE_INSTALL_DO_STRIP)
       execute_process(COMMAND "/usr/bin/strip" "$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}/lib/astra_camera/astra_camera_node")
     endif()
@@ -169,37 +170,17 @@ if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_
      NOT IS_SYMLINK "$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}/lib/astra_camera/list_devices_node")
     file(RPATH_CHECK
          FILE "$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}/lib/astra_camera/list_devices_node"
-         RPATH "")
+         RPATH ":/home/noe/ddr_ws/src/ros_astra_camera/include/openni2_redist/x64")
   endif()
   file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/lib/astra_camera" TYPE EXECUTABLE FILES "/home/noe/ddr_ws/devel/lib/astra_camera/list_devices_node")
   if(EXISTS "$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}/lib/astra_camera/list_devices_node" AND
      NOT IS_SYMLINK "$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}/lib/astra_camera/list_devices_node")
     file(RPATH_CHANGE
          FILE "$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}/lib/astra_camera/list_devices_node"
-         OLD_RPATH "/home/noe/ddr_ws/src/ros_astra_camera/include/openni2_redist/x64:/home/noe/ddr_ws/src/ros_astra_camera/opencv_calib3d:/home/noe/ddr_ws/src/ros_astra_camera/opencv_core:/home/noe/ddr_ws/src/ros_astra_camera/opencv_dnn:/home/noe/ddr_ws/src/ros_astra_camera/opencv_features2d:/home/noe/ddr_ws/src/ros_astra_camera/opencv_flann:/home/noe/ddr_ws/src/ros_astra_camera/opencv_highgui:/home/noe/ddr_ws/src/ros_astra_camera/opencv_imgcodecs:/home/noe/ddr_ws/src/ros_astra_camera/opencv_imgproc:/home/noe/ddr_ws/src/ros_astra_camera/opencv_ml:/home/noe/ddr_ws/src/ros_astra_camera/opencv_objdetect:/home/noe/ddr_ws/src/ros_astra_camera/opencv_photo:/home/noe/ddr_ws/src/ros_astra_camera/opencv_stitching:/home/noe/ddr_ws/src/ros_astra_camera/opencv_video:/home/noe/ddr_ws/src/ros_astra_camera/opencv_videoio:/home/noe/ddr_ws/src/ros_astra_camera/opencv_aruco:/home/noe/ddr_ws/src/ros_astra_camera/opencv_bgsegm:/home/noe/ddr_ws/src/ros_astra_camera/opencv_bioinspired:/home/noe/ddr_ws/src/ros_astra_camera/opencv_ccalib:/home/noe/ddr_ws/src/ros_astra_camera/opencv_datasets:/home/noe/ddr_ws/src/ros_astra_camera/opencv_dnn_objdetect:/home/noe/ddr_ws/src/ros_astra_camera/opencv_dnn_superres:/home/noe/ddr_ws/src/ros_astra_camera/opencv_dpm:/home/noe/ddr_ws/src/ros_astra_camera/opencv_face:/home/noe/ddr_ws/src/ros_astra_camera/opencv_freetype:/home/noe/ddr_ws/src/ros_astra_camera/opencv_fuzzy:/home/noe/ddr_ws/src/ros_astra_camera/opencv_hdf:/home/noe/ddr_ws/src/ros_astra_camera/opencv_hfs:/home/noe/ddr_ws/src/ros_astra_camera/opencv_img_hash:/home/noe/ddr_ws/src/ros_astra_camera/opencv_line_descriptor:/home/noe/ddr_ws/src/ros_astra_camera/opencv_optflow:/home/noe/ddr_ws/src/ros_astra_camera/opencv_phase_unwrapping:/home/noe/ddr_ws/src/ros_astra_camera/opencv_plot:/home/noe/ddr_ws/src/ros_astra_camera/opencv_quality:/home/noe/ddr_ws/src/ros_astra_camera/opencv_reg:/home/noe/ddr_ws/src/ros_astra_camera/opencv_rgbd:/home/noe/ddr_ws/src/ros_astra_camera/opencv_saliency:/home/noe/ddr_ws/src/ros_astra_camera/opencv_shape:/home/noe/ddr_ws/src/ros_astra_camera/opencv_stereo:/home/noe/ddr_ws/src/ros_astra_camera/opencv_structured_light:/home/noe/ddr_ws/src/ros_astra_camera/opencv_superres:/home/noe/ddr_ws/src/ros_astra_camera/opencv_surface_matching:/home/noe/ddr_ws/src/ros_astra_camera/opencv_text:/home/noe/ddr_ws/src/ros_astra_camera/opencv_tracking:/home/noe/ddr_ws/src/ros_astra_camera/opencv_videostab:/home/noe/ddr_ws/src/ros_astra_camera/opencv_viz:/home/noe/ddr_ws/src/ros_astra_camera/opencv_ximgproc:/home/noe/ddr_ws/src/ros_astra_camera/opencv_xobjdetect:/home/noe/ddr_ws/src/ros_astra_camera/opencv_xphoto:/home/noe/ddr_ws/devel/lib:/opt/ros/noetic/lib:"
-         NEW_RPATH "")
+         OLD_RPATH ":/home/noe/ddr_ws/src/ros_astra_camera/include/openni2_redist/x64:/home/noe/ddr_ws/devel/lib:/opt/ros/noetic/lib:"
+         NEW_RPATH ":/home/noe/ddr_ws/src/ros_astra_camera/include/openni2_redist/x64")
     if(CMAKE_INSTALL_DO_STRIP)
       execute_process(COMMAND "/usr/bin/strip" "$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}/lib/astra_camera/list_devices_node")
-    endif()
-  endif()
-endif()
-
-if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_COMPONENT)
-  if(EXISTS "$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}/lib/astra_camera/cleanup_shm_node" AND
-     NOT IS_SYMLINK "$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}/lib/astra_camera/cleanup_shm_node")
-    file(RPATH_CHECK
-         FILE "$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}/lib/astra_camera/cleanup_shm_node"
-         RPATH "")
-  endif()
-  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/lib/astra_camera" TYPE EXECUTABLE FILES "/home/noe/ddr_ws/devel/lib/astra_camera/cleanup_shm_node")
-  if(EXISTS "$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}/lib/astra_camera/cleanup_shm_node" AND
-     NOT IS_SYMLINK "$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}/lib/astra_camera/cleanup_shm_node")
-    file(RPATH_CHANGE
-         FILE "$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}/lib/astra_camera/cleanup_shm_node"
-         OLD_RPATH "/home/noe/ddr_ws/src/ros_astra_camera/include/openni2_redist/x64:/home/noe/ddr_ws/src/ros_astra_camera/opencv_calib3d:/home/noe/ddr_ws/src/ros_astra_camera/opencv_core:/home/noe/ddr_ws/src/ros_astra_camera/opencv_dnn:/home/noe/ddr_ws/src/ros_astra_camera/opencv_features2d:/home/noe/ddr_ws/src/ros_astra_camera/opencv_flann:/home/noe/ddr_ws/src/ros_astra_camera/opencv_highgui:/home/noe/ddr_ws/src/ros_astra_camera/opencv_imgcodecs:/home/noe/ddr_ws/src/ros_astra_camera/opencv_imgproc:/home/noe/ddr_ws/src/ros_astra_camera/opencv_ml:/home/noe/ddr_ws/src/ros_astra_camera/opencv_objdetect:/home/noe/ddr_ws/src/ros_astra_camera/opencv_photo:/home/noe/ddr_ws/src/ros_astra_camera/opencv_stitching:/home/noe/ddr_ws/src/ros_astra_camera/opencv_video:/home/noe/ddr_ws/src/ros_astra_camera/opencv_videoio:/home/noe/ddr_ws/src/ros_astra_camera/opencv_aruco:/home/noe/ddr_ws/src/ros_astra_camera/opencv_bgsegm:/home/noe/ddr_ws/src/ros_astra_camera/opencv_bioinspired:/home/noe/ddr_ws/src/ros_astra_camera/opencv_ccalib:/home/noe/ddr_ws/src/ros_astra_camera/opencv_datasets:/home/noe/ddr_ws/src/ros_astra_camera/opencv_dnn_objdetect:/home/noe/ddr_ws/src/ros_astra_camera/opencv_dnn_superres:/home/noe/ddr_ws/src/ros_astra_camera/opencv_dpm:/home/noe/ddr_ws/src/ros_astra_camera/opencv_face:/home/noe/ddr_ws/src/ros_astra_camera/opencv_freetype:/home/noe/ddr_ws/src/ros_astra_camera/opencv_fuzzy:/home/noe/ddr_ws/src/ros_astra_camera/opencv_hdf:/home/noe/ddr_ws/src/ros_astra_camera/opencv_hfs:/home/noe/ddr_ws/src/ros_astra_camera/opencv_img_hash:/home/noe/ddr_ws/src/ros_astra_camera/opencv_line_descriptor:/home/noe/ddr_ws/src/ros_astra_camera/opencv_optflow:/home/noe/ddr_ws/src/ros_astra_camera/opencv_phase_unwrapping:/home/noe/ddr_ws/src/ros_astra_camera/opencv_plot:/home/noe/ddr_ws/src/ros_astra_camera/opencv_quality:/home/noe/ddr_ws/src/ros_astra_camera/opencv_reg:/home/noe/ddr_ws/src/ros_astra_camera/opencv_rgbd:/home/noe/ddr_ws/src/ros_astra_camera/opencv_saliency:/home/noe/ddr_ws/src/ros_astra_camera/opencv_shape:/home/noe/ddr_ws/src/ros_astra_camera/opencv_stereo:/home/noe/ddr_ws/src/ros_astra_camera/opencv_structured_light:/home/noe/ddr_ws/src/ros_astra_camera/opencv_superres:/home/noe/ddr_ws/src/ros_astra_camera/opencv_surface_matching:/home/noe/ddr_ws/src/ros_astra_camera/opencv_text:/home/noe/ddr_ws/src/ros_astra_camera/opencv_tracking:/home/noe/ddr_ws/src/ros_astra_camera/opencv_videostab:/home/noe/ddr_ws/src/ros_astra_camera/opencv_viz:/home/noe/ddr_ws/src/ros_astra_camera/opencv_ximgproc:/home/noe/ddr_ws/src/ros_astra_camera/opencv_xobjdetect:/home/noe/ddr_ws/src/ros_astra_camera/opencv_xphoto:/opt/ros/noetic/lib:"
-         NEW_RPATH "")
-    if(CMAKE_INSTALL_DO_STRIP)
-      execute_process(COMMAND "/usr/bin/strip" "$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}/lib/astra_camera/cleanup_shm_node")
     endif()
   endif()
 endif()
@@ -213,7 +194,7 @@ if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_
 endif()
 
 if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_COMPONENT)
-  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/include/astra_camera/" TYPE DIRECTORY FILES "/home/noe/ddr_ws/src/ros_astra_camera/include")
+  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/include/astra_camera" TYPE DIRECTORY FILES "/home/noe/ddr_ws/src/ros_astra_camera/include/" FILES_MATCHING REGEX "/[^/]*$" REGEX "/openni2\\_redist$" EXCLUDE)
 endif()
 
 if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_COMPONENT)

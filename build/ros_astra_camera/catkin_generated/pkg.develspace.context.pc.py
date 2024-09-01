@@ -5,4 +5,4 @@ PROJECT_CATKIN_DEPENDS = "cv_bridge;dynamic_reconfigure;image_geometry;image_tra
 PKG_CONFIG_LIBRARIES_WITH_PREFIX = "-lastra_camera".split(';') if "-lastra_camera" != "" else []
 PROJECT_NAME = "astra_camera"
 PROJECT_SPACE_DIR = "/home/noe/ddr_ws/devel"
-PROJECT_VERSION = "1.2.3"
+PROJECT_VERSION = "1.2.7"
