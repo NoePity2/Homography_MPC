@@ -466,8 +466,9 @@ class OptimizationHMPC(object):
 		#solver   = opt.qpsol('solver', 'qpoases', sqp)
 		solver   = opt.nlpsol('S', 'ipopt', sqp)
 		solution = solver(lbx=lbU, ubx=ubU, lbg=lbg, ubg=ubg)
+		print(solution['x'])
 
-		self.V_opt = solution['x'][0::2]
+		self.V_opt     = solution['x'][0::2]
 		self.Omega_opt = solution['x'][1::2]
 		self.min_function_value = solution['f']
 

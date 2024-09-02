@@ -1,20 +1,117 @@
+#=========================================== libraries ======================================================
 import numpy as np
 import matplotlib.pyplot as plt
 import mpc_ddr.utils.Robot as Robot
 from mpc_ddr.mpc.nmpc import Pose
-from mpc_ddr.params.params import orientation_params, position_params
-from matplotlib.patches import Circle
-
 import matplotlib.patches as mpatches
-
 from VisualControlPython.CameraModels.PlanarCamera import PlanarCamera
 from VisualControlPython.homography import (homogToRt,H_from_points,Rodrigues,yaw_angle_from_rotationMatrix)
-
-from matplotlib import rc
-
+from mpc_ddr.mpc.nmpc import OptimizationHMPC, Homography11,Homography12,Homography13,Homography31,Homography32, Homography33
+from mpc_ddr.params.params import orientation_params, position_params, vision_parameters
+#from matplotlib import rc
 #rc('text', usetex=True)
 # plt.rcParams.update({'font.size': 12})
+#=========================================== libraries ======================================================
 
+#------------------------------------------------------------------------------------------------------------
+
+#============================================ classes =======================================================
+class VMPCPython():
+
+   def __init__(self,params_position=None,params_orientation=None,vision_parameters=None,x_init=0,y_init=0,yaw_init=0,phi_target=0.0,T=0.1,N=15,c_x_r=0.0,c_z_r=0.0,d_value=1.0,n_vector=None,ck_t_ct_vector=None,phi=0.0,He=None):
+
+      #Variables of controller
+      self.N          = N
+      self.delta_t    = 0.0
+      self.ctrl_c     = False
+      self.vel_x      = 0
+      self.vel_y      = 0
+      self.omega      = 0
+      self.T          = T
+      self.x          = x_init
+      self.y          = y_init
+      self.c_x_r      = c_x_r #Traslation between robot with respecto the camera x-axis
+      self.c_z_r      = c_z_r
+
+      # Homograpy decomposition
+      self.d_value        = d_value
+      self.n_vector       = n_vector
+      self.ck_t_ct_vector = ck_t_ct_vector
+      self.phi            = phi
+      self.homo_matrix    = He
+      self.PHI_TARGET     = phi_target*np.pi/180
+      self.phi_k          = self.PHI_TARGET - yaw_init
+
+      #Velocities (Controls)
+      self.angular_velocity = 0.0
+      self.V_k              = 0.0
+
+      self.params_position    = params_position
+      self.params_orientation = params_orientation
+      self.vision_parameters  = vision_parameters
+
+      #States
+      self.x_k = np.array( [ [x_init],[y_init],[yaw_init*np.pi/180]] )
+
+      #Homography predicted values
+      self.predicted_values = []
+
+      # Solvers
+      self.HMPC = OptimizationHMPC(self.params_position,self.params_orientation,self.vision_parameters,self.N,self.T)
+
+
+   def vel_ops(self):
+      # ============ Optimization to obtain linear velocities and angular velocities in a horizon =================
+      self.HMPC.solve(self.x_k,self.d_value,self.n_vector,self.ck_t_ct_vector,self.c_x_r,self.c_z_r,self.phi)#False,self.center_obstacle,self.obstacle_raduis+self.security_margin)
+      self.angular_velocity = self.HMPC.get_Omega_opt_solution()
+      self.V_k = self.HMPC.get_Vopt_solution()
+      self.predicted_values = self.HMPC.get_predicted_values()
+
+   def set_homograpy(self,He):
+      self.homo_matrix = He
+
+   def ck_t_ct_vector(self, msg):
+      self.ck_t_ct_vector = msg
+
+   def n_vector_callback(self,msg):
+      self.n_vector = msg
+
+   def d_value_callback(self,msg):
+      self.d_value = msg
+
+   def phi_value_callback(self,msg):
+      self.phi = msg
+
+   def reset_state(self):
+      self.x_k[0] = 0.0
+      self.x_k[1] = 0.0
+      self.x_k[2] = 0.0
+
+   def update_predictive_values(self):
+      self.HMPC.update_predictive_values(self.V_k[0],self.angular_velocity[0],self.x_k,self.T)
+
+   def set_desired_values(self):
+      self.HMPC.set_desired_values(self.homo_matrix)
+
+   def update_state(self):
+      x_k     = self.x_k[0]
+      y_k     = self.x_k[1]
+      theta_k = self.x_k[2]
+      v       = self.V_k[0]
+      w       = self.angular_velocity[0]
+
+      self.x_k[0] = x_k + self.T * np.cos(theta_k) * v
+      self.x_k[1] = y_k + self.T * np.sin(theta_k) * v
+      self.x_k[2] = theta_k + self.T * w
+
+   def get_rk_theta_rk1(self):
+      return self.HMPC.get_rk_theta_rk1(self.angular_velocity[0],self.x_k)
+
+#============================================ classes ======================================================
+
+#-----------------------------------------------------------------------------------------------------------
+
+#============================================ Parameters ===================================================
 N = 15 # number of control intervals
 
 # ============== Linear parameters ==============
@@ -28,7 +125,6 @@ t0 = 0
 tf = 20
 times = np.arange(t0,tf,dt)
 trajectory = np.zeros(( 5, len(times) )) 
-
 
 #==================== Visión terms ========================#
 #Create the world points
@@ -74,7 +170,6 @@ z_camera_Array    = np.zeros(len(times))
 x_pos = init_x_pos
 y_pos = init_y_pos
 z_pos = init_z_pos
-
 pitch = init_pitch
 yaw   = init_yaw
 roll  = init_roll
@@ -85,12 +180,59 @@ K2      = camera2.K
 K1_inv  = np.linalg.inv(K1)
 K2_inv  = np.linalg.inv(K2)
 
+#============================================ Estimate a first homograpy matriz ==========================
+#====================== Estimate the homography matrix ===========================
+H = H_from_points(p1,p2)
+#====================== Euclidian homograpy matrix ===============================
+He = K2_inv.dot(H.dot(K1))
+#============== Decomposition of the homography matrix ====================
+R,tr,normal,d = homogToRt(He)
+#============== Get the yaw angle ===========
+yaw_angle_k = yaw_angle_from_rotationMatrix(R)
+
+#============================================ Parameters ===================================================
+
+#-----------------------------------------------------------------------------------------------------------
+
+#================================================== VMPC ===================================================
+params_position    = position_params()
+params_orientation = orientation_params()
+vision_parameters  = vision_parameters()
+PHI_TARGET         = 0.0
+Robot_VMPC = VMPCPython(params_position=params_position,params_orientation=params_orientation,vision_parameters=vision_parameters,phi_target=PHI_TARGET,c_z_r=0.0,d_value=d,n_vector=normal,ck_t_ct_vector=tr,phi=-yaw_angle_k,He=He)
+Robot_VMPC.vel_ops()
+#================================================== VMPC ===================================================
+
 #============= Ciclo de navegación ============
-for j in range(200):
+for j in range(1):
    # ============ Optimization for angular velocities and linear velocities =================
    # Pose_opt.solve(Tethas_ref,theta_k,state_vector,X_ref,Y_ref,False,center_obstacle,obstacle_raduis+security_margin)
    # Omega_opt = Pose_opt.get_Omega_opt_solution()
    # V_opt     = Pose_opt.get_Vopt_solution()
+
+   #================================= Update ============================================#
+   #%%%%%%%%%%%%%%%%%% UpdatePredictiveValues(opti_solution) %%%%%%%%%%%%%%%%%%%%%%%%%%%%#
+   Robot_VMPC.update_predictive_values()
+   #%%%%%%%%%%%%%%%%%% UpdateStates(opti_solution) %%%%%%%%%%%%%%%%%%%%%%%%%%%%#
+   Robot_VMPC.update_state()
+
+
+   #%%%%%%%%%%%%%%%%%% PrepareDataForNextOptimizacion(opti_solution) %%%%%%%%%%%%%%%%%%%%#
+   Robot_VMPC.set_desired_values()
+   Robot_VMPC.reset_state() # This is due to the optimization is done with respect to the robot's frame
+   Robot_VMPC.phi_k = self.PHI_TARGET - self.get_rk_theta_rk1()
+   # #================================= Update ============================================#
+
+
+
+   #====================== Estimate the homography matrix ===========================
+   H = H_from_points(p1,p2)
+   #====================== Euclidian homograpy matrix ===============================
+   He = K2_inv.dot(H.dot(K1))
+   #============== Decomposition of the homography matrix ====================
+   R,tr,normal,d = homogToRt(He)
+   #============== Get the yaw angle ===========
+   yaw_angle_k = yaw_angle_from_rotationMatrix(R)
 
    # ========== Apply the first optimal control to a robot ======================
    u = np.array([ 0.1, 0.0  ])
@@ -106,20 +248,7 @@ for j in range(200):
    
    camera2.set_position(x_pos, y_pos, z_pos, roll, pitch, yaw)
    p2 = camera2.projection(w_points, nPoints)
-
-   #====================== Estimate the homography matrix ===========================
-   H = H_from_points(p1,p2)
-   #====================== Euclidian homograpy matrix ===============================
-   He = K2_inv.dot(H.dot(K1))
-   print(He)
-   #============== Decomposition of the homography matrix ====================
-   R,tr,normal,d = homogToRt(He)
-   print(R,tr,normal,d)
-   #============== Get the yaw angle ===========
-   yaw_angle_k = yaw_angle_from_rotationMatrix(R)
-   print(yaw_angle_k)
-
-
+   
    pixelCoordsArray[:,j] = p2.reshape((2*nPoints,1), order='F')[:,0]
    pixel_error           = p2-p1
    averageErrorArray[j]  = np.mean(np.linalg.norm(pixel_error.reshape((2*nPoints,1), order='F')))
