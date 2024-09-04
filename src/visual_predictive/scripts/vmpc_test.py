@@ -70,17 +70,17 @@ class VMPCPython():
    def set_homograpy(self,He):
       self.homo_matrix = He
 
-   def ck_t_ct_vector(self, msg):
-      self.ck_t_ct_vector = msg
+   def set_ck_t_ct_vector(self, ck_t_ct):
+      self.ck_t_ct_vector = ck_t_ct
 
-   def n_vector_callback(self,msg):
-      self.n_vector = msg
+   def set_n_vector(self,n_vector):
+      self.n_vector = n_vector
 
-   def d_value_callback(self,msg):
-      self.d_value = msg
+   def set_d_value(self,d_value):
+      self.d_value = d_value
 
-   def phi_value_callback(self,msg):
-      self.phi = msg
+   def set_phi_value(self,phi):
+      self.phi = phi
 
    def reset_state(self):
       self.x_k[0] = 0.0
@@ -200,7 +200,7 @@ params_orientation = orientation_params()
 vision_parameters  = vision_parameters()
 PHI_TARGET         = 0.0
 Robot_VMPC = VMPCPython(params_position=params_position,params_orientation=params_orientation,vision_parameters=vision_parameters,phi_target=PHI_TARGET,c_z_r=0.0,d_value=d,n_vector=normal,ck_t_ct_vector=tr,phi=-yaw_angle_k,He=He)
-Robot_VMPC.vel_ops()
+
 #================================================== VMPC ===================================================
 
 #============= Ciclo de navegación ============
@@ -210,29 +210,36 @@ for j in range(1):
    # Omega_opt = Pose_opt.get_Omega_opt_solution()
    # V_opt     = Pose_opt.get_Vopt_solution()
 
+   Robot_VMPC.vel_ops()
    #================================= Update ============================================#
    #%%%%%%%%%%%%%%%%%% UpdatePredictiveValues(opti_solution) %%%%%%%%%%%%%%%%%%%%%%%%%%%%#
-   Robot_VMPC.update_predictive_values()
+   Robot_VMPC.update_predictive_values() #Predice los elementos de la homografía
    #%%%%%%%%%%%%%%%%%% UpdateStates(opti_solution) %%%%%%%%%%%%%%%%%%%%%%%%%%%%#
    Robot_VMPC.update_state()
+   #-----------------Aqui va la actualización de matrices de transformación homogenea
 
+   camera2.set_position(x_pos, y_pos, z_pos, roll, pitch, yaw)
+   p2 = camera2.projection(w_points, nPoints)
 
-   #%%%%%%%%%%%%%%%%%% PrepareDataForNextOptimizacion(opti_solution) %%%%%%%%%%%%%%%%%%%%#
-   Robot_VMPC.set_desired_values()
-   Robot_VMPC.reset_state() # This is due to the optimization is done with respect to the robot's frame
-   Robot_VMPC.phi_k = self.PHI_TARGET - self.get_rk_theta_rk1()
-   # #================================= Update ============================================#
-
-
+   #%%%%%%%%%%%%%%%%%% PrepareDataForNextOptimizacion(opti_solution) %%%%%%%%%%%%%%%%%%%%# 
+   
+   #================================= Update  visual data ============================================#
 
    #====================== Estimate the homography matrix ===========================
    H = H_from_points(p1,p2)
    #====================== Euclidian homograpy matrix ===============================
    He = K2_inv.dot(H.dot(K1))
+   Robot_VMPC.set_homograpy(He.reshape((9,1)))
    #============== Decomposition of the homography matrix ====================
    R,tr,normal,d = homogToRt(He)
+   Robot_VMPC.set_ck_t_ct_vector(tr)
+   Robot_VMPC.set_d_value(d)
+   Robot_VMPC.set_n_vector(normal)
    #============== Get the yaw angle ===========
    yaw_angle_k = yaw_angle_from_rotationMatrix(R)
+   Robot_VMPC.phi_k = Robot_VMPC.PHI_TARGET - yaw_angle_k
+
+   Robot_VMPC.set_desired_values() #valores deseados de los elementos de la homografia
 
    # ========== Apply the first optimal control to a robot ======================
    u = np.array([ 0.1, 0.0  ])
@@ -246,13 +253,14 @@ for j in range(1):
    y_pos = x[1, 0]
    yaw   = x[2, 0]
    
-   camera2.set_position(x_pos, y_pos, z_pos, roll, pitch, yaw)
-   p2 = camera2.projection(w_points, nPoints)
+
    
    pixelCoordsArray[:,j] = p2.reshape((2*nPoints,1), order='F')[:,0]
    pixel_error           = p2-p1
    averageErrorArray[j]  = np.mean(np.linalg.norm(pixel_error.reshape((2*nPoints,1), order='F')))
    z_camera_Array[j]     = z_pos
+
+   Robot_VMPC.reset_state() # This is due to the optimization is done with respect to the robot's frame
 
    trajectory[0][j] = x[0]
    trajectory[1][j] = x[1]
