@@ -189,7 +189,6 @@ He = K2_inv.dot(H.dot(K1))
 R,tr,normal,d = homogToRt(He)
 #============== Get the yaw angle ===========
 yaw_angle_k = yaw_angle_from_rotationMatrix(R)
-
 #============================================ Parameters ===================================================
 
 #-----------------------------------------------------------------------------------------------------------
@@ -204,19 +203,29 @@ Robot_VMPC = VMPCPython(params_position=params_position,params_orientation=param
 #================================================== VMPC ===================================================
 
 #============= Ciclo de navegación ============
-for j in range(1):
+for j in range(10):
    # ============ Optimization for angular velocities and linear velocities =================
-   # Pose_opt.solve(Tethas_ref,theta_k,state_vector,X_ref,Y_ref,False,center_obstacle,obstacle_raduis+security_margin)
-   # Omega_opt = Pose_opt.get_Omega_opt_solution()
-   # V_opt     = Pose_opt.get_Vopt_solution()
-
    Robot_VMPC.vel_ops()
+   Omega_opt = Robot_VMPC.angular_velocity[0]
+   V_opt     = Robot_VMPC.V_k[0]
    #================================= Update ============================================#
    #%%%%%%%%%%%%%%%%%% UpdatePredictiveValues(opti_solution) %%%%%%%%%%%%%%%%%%%%%%%%%%%%#
    Robot_VMPC.update_predictive_values() #Predice los elementos de la homografía
    #%%%%%%%%%%%%%%%%%% UpdateStates(opti_solution) %%%%%%%%%%%%%%%%%%%%%%%%%%%%#
    Robot_VMPC.update_state()
    #-----------------Aqui va la actualización de matrices de transformación homogenea
+
+      # ========== Apply the first optimal control to a robot ======================
+   u = np.array([ V_opt, Omega_opt  ])
+   x = Robot.robot_ddr(x_new,u,dt)
+   print( "x = ", x )
+   state_vector = np.array([  x[0] , x[1]  ]) 
+   theta_k = x[2]
+   x_new = x
+
+   x_pos = x[0, 0]
+   y_pos = x[1, 0]
+   yaw   = x[2, 0]
 
    camera2.set_position(x_pos, y_pos, z_pos, roll, pitch, yaw)
    p2 = camera2.projection(w_points, nPoints)
@@ -240,21 +249,7 @@ for j in range(1):
    Robot_VMPC.phi_k = Robot_VMPC.PHI_TARGET - yaw_angle_k
 
    Robot_VMPC.set_desired_values() #valores deseados de los elementos de la homografia
-
-   # ========== Apply the first optimal control to a robot ======================
-   u = np.array([ 0.1, 0.0  ])
-   x = Robot.robot_ddr(x_new,u,dt)
-   print( "x = ", x )
-   state_vector = np.array([  x[0] , x[1]  ]) 
-   theta_k = x[2]
-   x_new = x
-
-   x_pos = x[0, 0]
-   y_pos = x[1, 0]
-   yaw   = x[2, 0]
-   
-
-   
+ 
    pixelCoordsArray[:,j] = p2.reshape((2*nPoints,1), order='F')[:,0]
    pixel_error           = p2-p1
    averageErrorArray[j]  = np.mean(np.linalg.norm(pixel_error.reshape((2*nPoints,1), order='F')))

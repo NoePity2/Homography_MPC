@@ -41,7 +41,7 @@ def homogToRt(H):
         R = R1.T
         t = zeta*t1
         n = n1
-        return R,t,n
+        return R,t,n,(1/zeta)
     else:
         R = R2.T
         t = zeta*t2

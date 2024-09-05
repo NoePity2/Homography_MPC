@@ -448,7 +448,7 @@ class OptimizationHMPC(object):
 			lbg.append( params_orientation['delta_min'] )
 			ubg.append( params_orientation['delta_max'] )
 
-			J += ( params_position['alpha_v']*v_i**2 ) + ( params_orientation['alpha_w']*omega_i**2 )  #+ params_position['alpha2']*(x_kn - X_ref[i])**2 + params_position['alpha3']*(y_kn - Y_ref[i])**2 )
+			J += ( params_position['alpha_v']*v_i**2 ) + ( params_orientation['alpha_w']*omega_i**2 )  
 			
 			# Obstacle´s constraints
 			# if(is_obstacle):
