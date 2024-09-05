@@ -203,7 +203,7 @@ Robot_VMPC = VMPCPython(params_position=params_position,params_orientation=param
 #================================================== VMPC ===================================================
 
 #============= Ciclo de navegación ============
-for j in range(10):
+for j in range(50):
    # ============ Optimization for angular velocities and linear velocities =================
    Robot_VMPC.vel_ops()
    Omega_opt = Robot_VMPC.angular_velocity[0]
@@ -265,7 +265,7 @@ for j in range(10):
 
 
 
-# #robot = Robot.dib_robot([trajectory[0,-1],trajectory[1,-1],trajectory[2,-1]],0.05)
+robot = Robot.dib_robot([trajectory[0,-1],trajectory[1,-1],trajectory[2,-1]],0.05)
 
 # # ======================================  Draw cameras ========================================
 
@@ -273,7 +273,7 @@ fig = plt.figure()
 fig.suptitle('World setting')
 
 ax = fig.add_subplot(1, 2, 1, projection='3d')
-ax = fig.gca(projection='3d')
+# ax = fig.gca(projection='3d')
 ax.plot(xx, yy, zz, 'o')
 
 ax.plot(trajectory[0,:],trajectory[1,:],z_camera_Array) # Plot camera trajectory
@@ -282,15 +282,15 @@ ax.plot(trajectory[0,:],trajectory[1,:],z_camera_Array) # Plot camera trajectory
 axis_scale      = 0.5
 camera_scale    = 0.09
 camera1.draw_camera(ax, scale=camera_scale, color='red')
-camera1.draw_frame(ax, scale=axis_scale, c='black')
+# camera1.draw_frame(ax, scale=axis_scale, c='black')
 
 camera2.set_position(x_pos, y_pos, z_pos, roll, pitch, yaw)
 camera2.draw_camera(ax, scale=camera_scale, color='brown')
-camera2.draw_frame(ax, scale=axis_scale, c='black')
+# camera2.draw_frame(ax, scale=axis_scale, c='black')
 
 camera2.set_position(init_x_pos, init_y_pos, init_z_pos, init_roll, init_pitch, init_yaw)
 camera2.draw_camera(ax, scale=camera_scale, color='blue')
-camera2.draw_frame(ax, scale=axis_scale, c='black')
+# camera2.draw_frame(ax, scale=axis_scale, c='black')
 limit_x = 1.0
 limit_y = 1.0
 limit_z = 1.0
@@ -321,49 +321,49 @@ ax.plot(pixelCoordsArray[2,0:j], pixelCoordsArray[3,0:j])
 ax.plot(pixelCoordsArray[4,0:j], pixelCoordsArray[5,0:j])
 ax.plot(pixelCoordsArray[6,0:j], pixelCoordsArray[7,0:j])
 
-plt.show()
-# fig1 = plt.figure()
-# ax1 = fig1.add_subplot(2,2,1)
-# ax1.plot(robot[:,0],robot[:,1],'r-',alpha=0.25)
-# ax1.plot(trajectory[0,:],trajectory[1,:])
-# # for center in center_obstacle:
-# #    circle_robot    = Circle(center, obstacle_raduis , color='r')
-# #    circle_security = Circle(center, obstacle_raduis + security_margin, color='cyan',fill=False,linestyle='--')
-# #    ax1.add_patch(circle_robot)
-# #    #ax1.annotate('Obstacle', xy=center_obstacle, xytext=(1.5, 0.25), arrowprops=dict(facecolor='black', shrink=0.05))
-# #    ax1.add_patch(circle_security)
-# ax1.grid()
-# ax1.set_xlabel("$x$-coordinate [$m$]", fontsize=14)
-# ax1.set_ylabel("$y$-coordinate [$m$]", fontsize=14)
-# ax1.set_aspect("equal")
 
-# ax2 = fig1.add_subplot(2,2,2)
-# ax2.plot(times,trajectory[0])
-# ax2.grid()
-# ax2.set_xlabel("time [$s$]", fontsize=14)
-# ax2.set_ylabel("$x$-coordinate [$m$]", fontsize=14)
+fig1 = plt.figure()
+ax1 = fig1.add_subplot(2,2,1)
+ax1.plot(robot[:,0],robot[:,1],'r-',alpha=0.25)
+ax1.plot(trajectory[0,:],trajectory[1,:])
+# for center in center_obstacle:
+#    circle_robot    = Circle(center, obstacle_raduis , color='r')
+#    circle_security = Circle(center, obstacle_raduis + security_margin, color='cyan',fill=False,linestyle='--')
+#    ax1.add_patch(circle_robot)
+#    #ax1.annotate('Obstacle', xy=center_obstacle, xytext=(1.5, 0.25), arrowprops=dict(facecolor='black', shrink=0.05))
+#    ax1.add_patch(circle_security)
+ax1.grid()
+ax1.set_xlabel("$x$-coordinate [$m$]", fontsize=14)
+ax1.set_ylabel("$y$-coordinate [$m$]", fontsize=14)
+ax1.set_aspect("equal")
 
-# ax3 = fig1.add_subplot(2,2,3)
-# ax3.plot(times,trajectory[1])
-# ax3.grid()
-# ax3.set_xlabel("time [$s$]", fontsize=14)
-# ax3.set_ylabel("$y$-coordinate [$m$]", fontsize=14)
+ax2 = fig1.add_subplot(2,2,2)
+ax2.plot(times,trajectory[0])
+ax2.grid()
+ax2.set_xlabel("time [$s$]", fontsize=14)
+ax2.set_ylabel("$x$-coordinate [$m$]", fontsize=14)
 
-# ax4 = fig1.add_subplot(2,2,4)
-# ax4.plot(times,trajectory[2]*(180/np.pi))
-# ax4.grid()
-# ax4.set_xlabel("time [$s$]", fontsize=14)
-# ax4.set_ylabel("Orientation [$deg$]", fontsize=14)
+ax3 = fig1.add_subplot(2,2,3)
+ax3.plot(times,trajectory[1])
+ax3.grid()
+ax3.set_xlabel("time [$s$]", fontsize=14)
+ax3.set_ylabel("$y$-coordinate [$m$]", fontsize=14)
 
-# fig2 = plt.figure()
+ax4 = fig1.add_subplot(2,2,4)
+ax4.plot(times,trajectory[2]*(180/np.pi))
+ax4.grid()
+ax4.set_xlabel("time [$s$]", fontsize=14)
+ax4.set_ylabel("Orientation [$deg$]", fontsize=14)
 
-# ax5 = fig2.add_subplot(1,2,1)
-# ax5.plot(times,trajectory[3],label=r"$v \; [\frac{m}{s}$]")
-# ax5.plot(times,trajectory[4],label=r" $\omega [\frac{rad}{s}$]")
-# ax5.grid()
-# ax5.legend()
-# ax5.set_xlabel(r"time [$s$]", fontsize=14)
-# ax5.set_ylabel(r"Controls", fontsize=14)
+fig2 = plt.figure()
+
+ax5 = fig2.add_subplot(1,2,1)
+ax5.plot(times,trajectory[3],label=r"$v \; [\frac{m}{s}$]")
+ax5.plot(times,trajectory[4],label=r" $\omega [\frac{rad}{s}$]")
+ax5.grid()
+ax5.legend()
+ax5.set_xlabel(r"time [$s$]", fontsize=14)
+ax5.set_ylabel(r"Controls", fontsize=14)
 
 # ax6 = fig2.add_subplot(1,2,2)
 # ax6.plot(times,errors[0],label=r"$e_x \; [m]$")
@@ -374,7 +374,7 @@ plt.show()
 # ax6.set_xlabel(r"time [$s$]", fontsize=14)
 # ax6.set_ylabel(r"errors", fontsize=14)
 
-# plt.show()
+plt.show()
 
 # print("#========== NonLinear Formulation =============")
 

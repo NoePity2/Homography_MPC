@@ -425,10 +425,10 @@ class OptimizationHMPC(object):
 			sum_y += np.sin(theta_kn) * v_i
 			y_kn  = y_k + T*sum_y
 
-			if(n == [] or ck_t_ct == [] ):
-				n=[1.0,1.0,1.0]
-				ck_t_ct=[0.0,0.0,0.0]
-				d = 1
+			# if(n == [] or ck_t_ct == [] ):
+			# 	n=[1.0,1.0,1.0]
+			# 	ck_t_ct=[0.0,0.0,0.0]
+			# 	d = 1
 
 			self.Homography11.set_values(d=d,n=n,ck_t_ct=ck_t_ct,rk_x_rl=x_kn,rk_y_rl=y_kn,c_x_r=c_x_r,c_z_r=c_z_r,theta=theta_kn,phi=phi)
 			self.Homography12.set_values(d=d,n=n,ck_t_ct=ck_t_ct,rk_x_rl=x_kn,rk_y_rl=y_kn,c_x_r=c_x_r,c_z_r=c_z_r,theta=theta_kn,phi=phi)
@@ -466,8 +466,7 @@ class OptimizationHMPC(object):
 		#solver   = opt.qpsol('solver', 'qpoases', sqp)
 		solver   = opt.nlpsol('S', 'ipopt', sqp)
 		solution = solver(lbx=lbU, ubx=ubU, lbg=lbg, ubg=ubg)
-		print(solution['x'])
-
+		
 		self.V_opt     = solution['x'][0::2]
 		self.Omega_opt = solution['x'][1::2]
 		self.min_function_value = solution['f']
