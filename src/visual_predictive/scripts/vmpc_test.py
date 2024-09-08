@@ -106,6 +106,9 @@ class VMPCPython():
 
    def get_rk_theta_rk1(self):
       return self.HMPC.get_rk_theta_rk1(self.angular_velocity[0],self.x_k)
+   
+   def get_h_predictive_values(self):
+      return np.array(self.predicted_values)
 
 #============================================ classes ======================================================
 
@@ -122,7 +125,7 @@ params_position = position_params()
 
 dt = 0.1
 t0 = 0
-tf = 20
+tf = 5
 times = np.arange(t0,tf,dt)
 trajectory = np.zeros(( 5, len(times) )) 
 
@@ -166,6 +169,8 @@ p2 = camera2.projection(w_points, nPoints)
 pixelCoordsArray  = np.zeros((2*nPoints,len(times)))   # List to save points positions on the image
 averageErrorArray = np.zeros(len(times))               # Matrix to save error points positions
 z_camera_Array    = np.zeros(len(times)) 
+h_predicted_values_array = np.zeros((6,len(times)))
+h_values_array = np.zeros( (6,len(times)) )
 
 x_pos = init_x_pos
 y_pos = init_y_pos
@@ -182,7 +187,7 @@ K2_inv  = np.linalg.inv(K2)
 
 #============================================ Estimate a first homograpy matriz ==========================
 #====================== Estimate the homography matrix ===========================
-H = H_from_points(p1,p2)
+H = H_from_points(p2,p1)
 #====================== Euclidian homograpy matrix ===============================
 He = K2_inv.dot(H.dot(K1))
 #============== Decomposition of the homography matrix ====================
@@ -203,7 +208,7 @@ Robot_VMPC = VMPCPython(params_position=params_position,params_orientation=param
 #================================================== VMPC ===================================================
 
 #============= Ciclo de navegación ============
-for j in range(50):
+for j in range(len(times)):
    # ============ Optimization for angular velocities and linear velocities =================
    Robot_VMPC.vel_ops()
    Omega_opt = Robot_VMPC.angular_velocity[0]
@@ -211,9 +216,11 @@ for j in range(50):
    #================================= Update ============================================#
    #%%%%%%%%%%%%%%%%%% UpdatePredictiveValues(opti_solution) %%%%%%%%%%%%%%%%%%%%%%%%%%%%#
    Robot_VMPC.update_predictive_values() #Predice los elementos de la homografía
+   h_predicted_values = Robot_VMPC.get_h_predictive_values()
+   h_predicted_values_array[:, j] = h_predicted_values.reshape((6,))
    #%%%%%%%%%%%%%%%%%% UpdateStates(opti_solution) %%%%%%%%%%%%%%%%%%%%%%%%%%%%#
    Robot_VMPC.update_state()
-   #-----------------Aqui va la actualización de matrices de transformación homogenea
+  
 
       # ========== Apply the first optimal control to a robot ======================
    u = np.array([ V_opt, Omega_opt  ])
@@ -235,10 +242,16 @@ for j in range(50):
    #================================= Update  visual data ============================================#
 
    #====================== Estimate the homography matrix ===========================
-   H = H_from_points(p1,p2)
+   H = H_from_points(p2,p1)
    #====================== Euclidian homograpy matrix ===============================
    He = K2_inv.dot(H.dot(K1))
    Robot_VMPC.set_homograpy(He.reshape((9,1)))
+   h_values_array[0,j] = He[0,0]
+   h_values_array[1,j] = He[0,1]
+   h_values_array[2,j] = He[0,2]
+   h_values_array[3,j] = He[2,0]
+   h_values_array[4,j] = He[2,1]
+   h_values_array[5,j] = He[2,2]
    #============== Decomposition of the homography matrix ====================
    R,tr,normal,d = homogToRt(He)
    Robot_VMPC.set_ck_t_ct_vector(tr)
@@ -272,7 +285,7 @@ robot = Robot.dib_robot([trajectory[0,-1],trajectory[1,-1],trajectory[2,-1]],0.0
 fig = plt.figure()
 fig.suptitle('World setting')
 
-ax = fig.add_subplot(1, 2, 1, projection='3d')
+ax = fig.add_subplot(2, 2, 1, projection='3d')
 # ax = fig.gca(projection='3d')
 ax.plot(xx, yy, zz, 'o')
 
@@ -282,15 +295,15 @@ ax.plot(trajectory[0,:],trajectory[1,:],z_camera_Array) # Plot camera trajectory
 axis_scale      = 0.5
 camera_scale    = 0.09
 camera1.draw_camera(ax, scale=camera_scale, color='red')
-# camera1.draw_frame(ax, scale=axis_scale, c='black')
+camera1.draw_frame(ax, scale=axis_scale, c='black')
 
 camera2.set_position(x_pos, y_pos, z_pos, roll, pitch, yaw)
 camera2.draw_camera(ax, scale=camera_scale, color='brown')
-# camera2.draw_frame(ax, scale=axis_scale, c='black')
+#camera2.draw_frame(ax, scale=axis_scale, c='black')
 
 camera2.set_position(init_x_pos, init_y_pos, init_z_pos, init_roll, init_pitch, init_yaw)
 camera2.draw_camera(ax, scale=camera_scale, color='blue')
-# camera2.draw_frame(ax, scale=axis_scale, c='black')
+camera2.draw_frame(ax, scale=axis_scale, c='black')
 limit_x = 1.0
 limit_y = 1.0
 limit_z = 1.0
@@ -302,7 +315,7 @@ ax.grid(True)
 ax.set_title('World setting')
 
  # ======================================  Plot the pixels ==========================================
-ax = fig.add_subplot(1, 2, 2)
+ax = fig.add_subplot(2, 2, 2)
 
 p20 = pixelCoordsArray[:,0].reshape((2,nPoints), order='F')
 ax.plot(p1[0, :],  p1[1, :], 'o', color='red')
@@ -320,6 +333,18 @@ ax.plot(pixelCoordsArray[0,0:j], pixelCoordsArray[1,0:j])
 ax.plot(pixelCoordsArray[2,0:j], pixelCoordsArray[3,0:j])
 ax.plot(pixelCoordsArray[4,0:j], pixelCoordsArray[5,0:j])
 ax.plot(pixelCoordsArray[6,0:j], pixelCoordsArray[7,0:j])
+
+ax = fig.add_subplot(2, 2, 3)
+colors = ['red','green','blue','magenta','cyan','yellow']
+index  = ['h11','h12','h13','h31','h32','h33']
+for i in range(6):
+   ax.plot(h_predicted_values_array[i, :], color=colors[i], label= r'%s predicted'%index[i],linestyle='--')
+   ax.plot(h_values_array[i, :], color=colors[i], label= r'%s observed'%index[i],linestyle='-')
+
+ax.set_xlabel('Time')
+ax.set_ylabel('Homography elements')
+ax.legend(loc='best', ncol=3)
+ax.grid(True)
 
 
 fig1 = plt.figure()

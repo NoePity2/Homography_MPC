@@ -333,12 +333,12 @@ class OptimizationHMPC(object):
 		self.h31_desired_value = [0.0]
 		self.h32_desired_value = [0.0]
 		self.h33_desired_value = [1.0]
-		self.h11_predicted = 1.0
+		self.h11_predicted = 0.0
 		self.h12_predicted = 0.0
 		self.h13_predicted = 0.0
 		self.h31_predicted = 0.0
 		self.h32_predicted = 0.0
-		self.h33_predicted =1.0
+		self.h33_predicted = 0.0
 		self.V_opt = 0.0
 		self.Omega_opt = 0.0
 
@@ -373,28 +373,46 @@ class OptimizationHMPC(object):
 		y_k     = state_vector[1]
 		theta_k = state_vector[2]
 
-		# Objective function
-		J = 0
+		x_x = opt.SX.sym('x_x')
+		x_y = opt.SX.sym('x_y')
+		x_theta = opt.SX.sym('x_theta')
 
-		# Variables
-		U = []
+		u_v = opt.SX.sym('u_v')
+		u_w = opt.SX.sym('u_w')
 
-		# Variable bounds
-		lbU = []
-		ubU = []
+		x   = opt.vertcat(x_x,x_y,x_theta)
+		u   = opt.vertcat(u_v, u_w)
 
-		# Constraints
-		g = []
+		# DDR's kinematic model
+		xdot = opt.vertcat( u_v*opt.cos(x_theta), u_v*opt.sin(x_theta), u_w )
 
-		# Constraint bounds
+		# Fixed step Euler integrator
+		f = opt.Function('f', [x, u], [xdot])
+		X0 = opt.SX.sym('X0', 3)
+		U = opt.SX.sym('U',2)
+		X = X0
+		k1 = f(X, U)
+		X = X + T*k1
+	
+		F = opt.Function('F', [X0, U], [X],['x0','u'],['xf'])
+
+		# Start with an empty NLP
+		w   = []
+		lbw = []
+		ubw = []
+		J   = 0
+		g   = []
 		lbg = []
 		ubg = []
 
-		# Obstacle´s Constraint
-		gl = []
-
 		#Orientation references
 		Theta_ref = self.get_thetas_ref(phi)
+
+		# initial conditions
+		Xk = opt.SX.sym('X0', 3)
+		w += [Xk]
+		lbw += [x_k, y_k, theta_k]
+		ubw += [x_k, y_k, theta_k ]
 
 		sum_x = 0
 		sum_y = 0
@@ -408,10 +426,26 @@ class OptimizationHMPC(object):
 			v_i = opt.SX.sym('v_' + str(i))
 
 			# Add to the list of variables
-			U += [v_i, omega_i]
+			Uk = opt.vertcat(v_i, omega_i)
+			w   += [Uk]
+			lbw += [params_position['lbv'], params_orientation['lbO']]
+			ubw += [params_position['ubv'], params_orientation['ubO']]
 
-			lbU += [params_position['lbv'], params_orientation['lbO']]
-			ubU += [params_position['ubv'], params_orientation['ubO']]
+			# Integrate till the end of the interval
+			Fk = F(x0=Xk, u=Uk)
+			Xk_end = Fk['xf']
+
+
+			# New NLP variable for state at end of interval
+			Xk = opt.SX.sym('X_' + str(i+1), 3)
+			w   += [Xk]
+			lbw += [-opt.inf, -opt.inf, -opt.inf]
+			ubw += [ opt.inf,  opt.inf,  opt.inf]
+
+			# Add equality constraint
+			g   += [Xk_end-Xk]
+			lbg += [0, 0, 0]
+			ubg += [0, 0, 0]		
 
 			#Orientation cost function
 			sum_Omega += omega_i
@@ -444,9 +478,9 @@ class OptimizationHMPC(object):
 			J += vision_parameters['b32']*(self.Homography32.get_h32() - self.h32_desired_value[0] )**2
 			J += vision_parameters['b33']*(self.Homography33.get_h33() - self.h33_desired_value[0] )**2
 							
-			g.append( theta_kn  )
-			lbg.append( params_orientation['delta_min'] )
-			ubg.append( params_orientation['delta_max'] )
+			# g.append( theta_kn  )
+			# lbg.append( params_orientation['delta_min'] )
+			# ubg.append( params_orientation['delta_max'] )
 
 			J += ( params_position['alpha_v']*v_i**2 ) + ( params_orientation['alpha_w']*omega_i**2 )  
 			
@@ -460,15 +494,17 @@ class OptimizationHMPC(object):
 
 			 
 		# Formulate QP
-		sqp = {'x':opt.vertcat(*U), 'f':J, 'g':opt.vertcat(*g)}
+		sqp = {'x':opt.vertcat(*w), 'f':J, 'g':opt.vertcat(*g)}
 
 		# Solve with qpoases
 		#solver   = opt.qpsol('solver', 'qpoases', sqp)
 		solver   = opt.nlpsol('S', 'ipopt', sqp)
-		solution = solver(lbx=lbU, ubx=ubU, lbg=lbg, ubg=ubg)
+
+		solution = solver(lbx=lbw, ubx=ubw, lbg=lbg, ubg=ubg)
+		#print(solution['x'])
 		
-		self.V_opt     = solution['x'][0::2]
-		self.Omega_opt = solution['x'][1::2]
+		self.V_opt     = solution['x'][3::5]
+		self.Omega_opt = solution['x'][4::5]
 		self.min_function_value = solution['f']
 
 	def get_Vopt_solution(self):
