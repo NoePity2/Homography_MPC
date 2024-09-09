@@ -10,11 +10,11 @@ import numpy as np
 def orientation_params():
 
 	delta_min = 0.0  # angle limit
-	delta_max = 2*np.pi
+	delta_max = 5*(np.pi/180) # angle limit
 	alpha = 1e-2 # qp gain
-	beta  = 1e2 # 2e-2 non linear 
-	lbO   = -0.3 # lower angular velocity constraint
-	ubO   = 0.3 # upper angular velocity constraint
+	beta  = 1e6 # 2e-2 non linear 
+	lbO   = -0.6 # lower angular velocity constraint
+	ubO   = 0.6 # upper angular velocity constraint
 
 	params = {
 		'delta_min': delta_min,
@@ -29,16 +29,12 @@ def orientation_params():
 
 def position_params():
 
-	alpha1 = 1e-2
-	alpha2 = 1.2e-1
-	alpha3 = 1.2e-1
-	lbv    = -0.2 # lower velocity constraint
-	ubv    = 0.2 # upper velocity constraint
+	alpha1 = 1e-3
+	lbv    = -0.26 # lower velocity constraint
+	ubv    = 0.26 # upper velocity constraint
 
 	params = {
 		'alpha_v': alpha1,
-		'alpha2': alpha2,
-		'alpha3': alpha3,
 		'lbv'   : lbv,
 		'ubv'   : ubv,
 	}
@@ -47,12 +43,12 @@ def position_params():
 
 def vision_parameters():
 
-	b11 = 1e1
-	b12 = 1e1
-	b13 = 1e1
-	b31 = 1e0
-	b32 = 1e0
-	b33 = 2
+	b11 = 7000
+	b12 = 7000
+	b13 = 7000
+	b31 = 7000
+	b32 = 7000
+	b33 = 7000
 
 	params = {
 		'b11': b11,

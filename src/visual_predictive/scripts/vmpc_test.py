@@ -125,16 +125,16 @@ params_position = position_params()
 
 dt = 0.1
 t0 = 0
-tf = 5
+tf = 20
 times = np.arange(t0,tf,dt)
 trajectory = np.zeros(( 5, len(times) )) 
 
 #==================== Visión terms ========================#
 #Create the world points
 nPoints = 4
-xx       = np.array([5.5,5.5,5.5,5.5])
-yy       = np.array([-0.5,0.5,0.5,-0.5])
-zz       = np.array([0.5,0.5,1.5,1.5])
+xx      = np.array([5.5,5.5,5.5,5.5])
+yy      = np.array([-0.5,0.5,0.5,-0.5])
+zz      = np.array([0.5,0.5,1.5,1.5])
 
 w_points = np.vstack([xx, yy, zz])
 
@@ -193,7 +193,7 @@ He = K2_inv.dot(H.dot(K1))
 #============== Decomposition of the homography matrix ====================
 R,tr,normal,d = homogToRt(He)
 #============== Get the yaw angle ===========
-yaw_angle_k = yaw_angle_from_rotationMatrix(R)
+yaw_angle_k = -yaw_angle_from_rotationMatrix(R)
 #============================================ Parameters ===================================================
 
 #-----------------------------------------------------------------------------------------------------------
@@ -222,7 +222,7 @@ for j in range(len(times)):
    Robot_VMPC.update_state()
   
 
-      # ========== Apply the first optimal control to a robot ======================
+   # ========== Apply the first optimal control to a robot ======================
    u = np.array([ V_opt, Omega_opt  ])
    x = Robot.robot_ddr(x_new,u,dt)
    print( "x = ", x )
@@ -232,11 +232,11 @@ for j in range(len(times)):
 
    x_pos = x[0, 0]
    y_pos = x[1, 0]
-   yaw   = x[2, 0]
+   pitch = np.deg2rad(angle_fixed) + yaw_angle_k
 
    camera2.set_position(x_pos, y_pos, z_pos, roll, pitch, yaw)
    p2 = camera2.projection(w_points, nPoints)
-
+   
    #%%%%%%%%%%%%%%%%%% PrepareDataForNextOptimizacion(opti_solution) %%%%%%%%%%%%%%%%%%%%# 
    
    #================================= Update  visual data ============================================#
@@ -255,6 +255,7 @@ for j in range(len(times)):
    #============== Decomposition of the homography matrix ====================
    R,tr,normal,d = homogToRt(He)
    Robot_VMPC.set_ck_t_ct_vector(tr)
+   print("tr: ", tr)
    Robot_VMPC.set_d_value(d)
    Robot_VMPC.set_n_vector(normal)
    #============== Get the yaw angle ===========
@@ -298,7 +299,7 @@ camera1.draw_camera(ax, scale=camera_scale, color='red')
 camera1.draw_frame(ax, scale=axis_scale, c='black')
 
 camera2.set_position(x_pos, y_pos, z_pos, roll, pitch, yaw)
-camera2.draw_camera(ax, scale=camera_scale, color='brown')
+camera2.draw_camera(ax, scale=camera_scale, color='cyan')
 #camera2.draw_frame(ax, scale=axis_scale, c='black')
 
 camera2.set_position(init_x_pos, init_y_pos, init_z_pos, init_roll, init_pitch, init_yaw)
@@ -346,6 +347,14 @@ ax.set_ylabel('Homography elements')
 ax.legend(loc='best', ncol=3)
 ax.grid(True)
 
+ax = fig.add_subplot(2, 2, 4)
+ax.plot(times,trajectory[3],label=r"$v \; [\frac{m}{s}$]")
+ax.plot(times,trajectory[4],label=r" $\omega [\frac{rad}{s}$]")
+ax.grid()
+ax.legend()
+ax.set_xlabel(r"time [$s$]", fontsize=14)
+ax.set_ylabel(r"Controls", fontsize=14)
+
 
 fig1 = plt.figure()
 ax1 = fig1.add_subplot(2,2,1)
@@ -380,15 +389,15 @@ ax4.grid()
 ax4.set_xlabel("time [$s$]", fontsize=14)
 ax4.set_ylabel("Orientation [$deg$]", fontsize=14)
 
-fig2 = plt.figure()
+# fig2 = plt.figure()
 
-ax5 = fig2.add_subplot(1,2,1)
-ax5.plot(times,trajectory[3],label=r"$v \; [\frac{m}{s}$]")
-ax5.plot(times,trajectory[4],label=r" $\omega [\frac{rad}{s}$]")
-ax5.grid()
-ax5.legend()
-ax5.set_xlabel(r"time [$s$]", fontsize=14)
-ax5.set_ylabel(r"Controls", fontsize=14)
+# ax5 = fig2.add_subplot(1,2,1)
+# ax5.plot(times,trajectory[3],label=r"$v \; [\frac{m}{s}$]")
+# ax5.plot(times,trajectory[4],label=r" $\omega [\frac{rad}{s}$]")
+# ax5.grid()
+# ax5.legend()
+# ax5.set_xlabel(r"time [$s$]", fontsize=14)
+# ax5.set_ylabel(r"Controls", fontsize=14)
 
 # ax6 = fig2.add_subplot(1,2,2)
 # ax6.plot(times,errors[0],label=r"$e_x \; [m]$")

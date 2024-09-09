@@ -327,12 +327,12 @@ class OptimizationHMPC(object):
 		self.Homography31 = Homography31()
 		self.Homography32 = Homography32()
 		self.Homography33 = Homography33()
-		self.h11_desired_value = [1.0]
+		self.h11_desired_value = [0.0]
 		self.h12_desired_value = [0.0]
 		self.h13_desired_value = [0.0]
 		self.h31_desired_value = [0.0]
 		self.h32_desired_value = [0.0]
-		self.h33_desired_value = [1.0]
+		self.h33_desired_value = [0.0]
 		self.h11_predicted = 0.0
 		self.h12_predicted = 0.0
 		self.h13_predicted = 0.0
@@ -451,7 +451,7 @@ class OptimizationHMPC(object):
 			sum_Omega += omega_i
 			theta_kn  = theta_k + T*sum_Omega   
 
-			J += params_orientation['beta']*(theta_kn - Theta_ref[i])**2 
+			J += 0.5*params_orientation['beta']*(theta_kn - Theta_ref[i])**2 
 
 			#Vision cost function
 			sum_x += np.cos(theta_kn) * v_i
@@ -471,18 +471,18 @@ class OptimizationHMPC(object):
 			self.Homography32.set_values(d=d,n=n,ck_t_ct=ck_t_ct,rk_x_rl=x_kn,rk_y_rl=y_kn,c_x_r=c_x_r,c_z_r=c_z_r,theta=theta_kn,phi=phi)
 			self.Homography33.set_values(d=d,n=n,ck_t_ct=ck_t_ct,rk_x_rl=x_kn,rk_y_rl=y_kn,c_x_r=c_x_r,c_z_r=c_z_r,theta=theta_kn,phi=phi)   
 
-			J += vision_parameters['b11']*(self.Homography11.get_h11() - self.h11_desired_value[0] )**2  
-			J += vision_parameters['b12']*(self.Homography12.get_h12() - self.h12_desired_value[0] )**2
-			J += vision_parameters['b13']*(self.Homography13.get_h13() - self.h13_desired_value[0] )**2
-			J += vision_parameters['b31']*(self.Homography31.get_h31() - self.h31_desired_value[0] )**2
-			J += vision_parameters['b32']*(self.Homography32.get_h32() - self.h32_desired_value[0] )**2
-			J += vision_parameters['b33']*(self.Homography33.get_h33() - self.h33_desired_value[0] )**2
+			J += 0.5*vision_parameters['b11']*(self.Homography11.get_h11() - self.h11_desired_value[0] )**2  
+			J += 0.5*vision_parameters['b12']*(self.Homography12.get_h12() - self.h12_desired_value[0] )**2
+			J += 0.5*vision_parameters['b13']*(self.Homography13.get_h13() - self.h13_desired_value[0] )**2
+			J += 0.5*vision_parameters['b31']*(self.Homography31.get_h31() - self.h31_desired_value[0] )**2
+			J += 0.5*vision_parameters['b32']*(self.Homography32.get_h32() - self.h32_desired_value[0] )**2
+			J += 0.5*vision_parameters['b33']*(self.Homography33.get_h33() - self.h33_desired_value[0] )**2
 							
 			# g.append( theta_kn  )
 			# lbg.append( params_orientation['delta_min'] )
 			# ubg.append( params_orientation['delta_max'] )
 
-			J += ( params_position['alpha_v']*v_i**2 ) + ( params_orientation['alpha_w']*omega_i**2 )  
+			J += ( 0.5*params_position['alpha_v']*v_i**2 ) + ( 0.5*params_orientation['alpha_w']*omega_i**2 )  
 			
 			# Obstacle´s constraints
 			# if(is_obstacle):
@@ -498,7 +498,7 @@ class OptimizationHMPC(object):
 
 		# Solve with qpoases
 		#solver   = opt.qpsol('solver', 'qpoases', sqp)
-		solver   = opt.nlpsol('S', 'ipopt', sqp)
+		solver   = opt.nlpsol('S', 'feasiblesqpmethod', sqp)
 
 		solution = solver(lbx=lbw, ubx=ubw, lbg=lbg, ubg=ubg)
 		#print(solution['x'])

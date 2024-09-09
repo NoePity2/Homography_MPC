@@ -50,6 +50,9 @@ class PlanarCamera:
 		self.t = np.array([x,y,z])
 		self.R = self.euler_to_rotmat(rot_x,rot_y,rot_z)
 		self.P = np.dot(self.K,np.concatenate((self.R, np.dot(-self.R,self.t).reshape(3,1)),axis=1))
+
+	def get_rot(self):
+		return self.R
 		
 	"""
 		function: set_noise
