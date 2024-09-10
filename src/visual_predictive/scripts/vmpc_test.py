@@ -125,7 +125,7 @@ params_position = position_params()
 
 dt = 0.1
 t0 = 0
-tf = 20
+tf = 7
 times = np.arange(t0,tf,dt)
 trajectory = np.zeros(( 5, len(times) )) 
 

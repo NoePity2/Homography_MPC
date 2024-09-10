@@ -369,9 +369,9 @@ class OptimizationHMPC(object):
 		T      = self.T
 		
 		#Init the state vector to zero due to the optimización is local at robot frame.
-		x_k     = state_vector[0]
-		y_k     = state_vector[1]
-		theta_k = state_vector[2]
+		x_k     = float(state_vector[0])
+		y_k     = float(state_vector[1])
+		theta_k = float(state_vector[2])
 
 		x_x = opt.SX.sym('x_x')
 		x_y = opt.SX.sym('x_y')
@@ -414,6 +414,11 @@ class OptimizationHMPC(object):
 		lbw += [x_k, y_k, theta_k]
 		ubw += [x_k, y_k, theta_k ]
 
+		Uk = opt.SX.sym('U0', 2)
+		w += [Uk]
+		lbw += [0, 0]
+		ubw += [0,0 ]			
+
 		sum_x = 0
 		sum_y = 0
 		sum_Omega = 0
@@ -448,16 +453,16 @@ class OptimizationHMPC(object):
 			ubg += [0, 0, 0]		
 
 			#Orientation cost function
-			sum_Omega += omega_i
-			theta_kn  = theta_k + T*sum_Omega   
+			sum_Omega += T*omega_i
+			theta_kn  = theta_k + sum_Omega   
 
 			J += 0.5*params_orientation['beta']*(theta_kn - Theta_ref[i])**2 
 
 			#Vision cost function
-			sum_x += np.cos(theta_kn) * v_i
-			x_kn  = x_k + T*sum_x
-			sum_y += np.sin(theta_kn) * v_i
-			y_kn  = y_k + T*sum_y
+			sum_x += T*np.cos(theta_kn) * v_i
+			x_kn  = x_k + sum_x
+			sum_y += T*np.sin(theta_kn) * v_i
+			y_kn  = y_k + sum_y
 
 			# if(n == [] or ck_t_ct == [] ):
 			# 	n=[1.0,1.0,1.0]
@@ -498,13 +503,14 @@ class OptimizationHMPC(object):
 
 		# Solve with qpoases
 		#solver   = opt.qpsol('solver', 'qpoases', sqp)
-		solver   = opt.nlpsol('S', 'feasiblesqpmethod', sqp)
+		solver   = opt.nlpsol('solver', 'feasiblesqpmethod', sqp)
 
 		solution = solver(lbx=lbw, ubx=ubw, lbg=lbg, ubg=ubg)
 		#print(solution['x'])
 		
 		self.V_opt     = solution['x'][3::5]
 		self.Omega_opt = solution['x'][4::5]
+		print(solution['x'])	
 		self.min_function_value = solution['f']
 
 	def get_Vopt_solution(self):
