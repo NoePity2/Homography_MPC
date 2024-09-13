@@ -176,7 +176,7 @@ class HomographyMPC:
 	def get_predictive_state_values(self,v,omega,state_vector,T):
 		x_k     = state_vector[0]
 		y_k     = state_vector[1]
-		theta_k = state_vector[0]
+		theta_k = state_vector[2]
 
 		x_kn      = x_k + T*np.cos(theta_k) * v #Get the next x
 		y_kn      = y_k + T*np.sin(theta_k) * v #Get the next y
@@ -386,15 +386,19 @@ class OptimizationHMPC(object):
 		# DDR's kinematic model
 		xdot = opt.vertcat( u_v*opt.cos(x_theta), u_v*opt.sin(x_theta), u_w )
 
+		L = 0.01*0.5*x_x**2 + 0.01*0.5*x_y**2 + 0.01*0.5*x_theta**2 + 0.5*params_position['alpha_v']*u_v**2 + 0.5*params_orientation['alpha_w']*u_w**2
+
 		# Fixed step Euler integrator
-		f = opt.Function('f', [x, u], [xdot])
+		f = opt.Function('f', [x, u], [xdot, L])
 		X0 = opt.SX.sym('X0', 3)
 		U = opt.SX.sym('U',2)
 		X = X0
-		k1 = f(X, U)
+		Q = 0
+		k1, k1_q = f(X, U)
 		X = X + T*k1
+		Q = Q + T*k1_q
 	
-		F = opt.Function('F', [X0, U], [X],['x0','u'],['xf'])
+		F = opt.Function('F', [X0, U], [X, Q],['x0','u'],['xf','qf'])
 
 		# Start with an empty NLP
 		w   = []
@@ -439,10 +443,10 @@ class OptimizationHMPC(object):
 			# Integrate till the end of the interval
 			Fk = F(x0=Xk, u=Uk)
 			Xk_end = Fk['xf']
-
+			J=J+Fk['qf']
 
 			# New NLP variable for state at end of interval
-			Xk = opt.SX.sym('X_' + str(i+1), 3)
+			Xk   = opt.SX.sym('X_' + str(i+1), 3)
 			w   += [Xk]
 			lbw += [-opt.inf, -opt.inf, -opt.inf]
 			ubw += [ opt.inf,  opt.inf,  opt.inf]
@@ -476,18 +480,44 @@ class OptimizationHMPC(object):
 			self.Homography32.set_values(d=d,n=n,ck_t_ct=ck_t_ct,rk_x_rl=x_kn,rk_y_rl=y_kn,c_x_r=c_x_r,c_z_r=c_z_r,theta=theta_kn,phi=phi)
 			self.Homography33.set_values(d=d,n=n,ck_t_ct=ck_t_ct,rk_x_rl=x_kn,rk_y_rl=y_kn,c_x_r=c_x_r,c_z_r=c_z_r,theta=theta_kn,phi=phi)   
 
-			J += 0.5*vision_parameters['b11']*(self.Homography11.get_h11() - self.h11_desired_value[0] )**2  
-			J += 0.5*vision_parameters['b12']*(self.Homography12.get_h12() - self.h12_desired_value[0] )**2
-			J += 0.5*vision_parameters['b13']*(self.Homography13.get_h13() - self.h13_desired_value[0] )**2
-			J += 0.5*vision_parameters['b31']*(self.Homography31.get_h31() - self.h31_desired_value[0] )**2
-			J += 0.5*vision_parameters['b32']*(self.Homography32.get_h32() - self.h32_desired_value[0] )**2
-			J += 0.5*vision_parameters['b33']*(self.Homography33.get_h33() - self.h33_desired_value[0] )**2
+			cl_t_ct = opt.SX.sym('cl_t_ct',3)
+			cl_t_ct[0] = (ck_t_ct[0] + y_kn - c_x_r)*opt.cos(theta_kn) + (ck_t_ct[2] + x_kn - c_z_r)*opt.sin(theta_kn) + c_x_r
+			cl_t_ct[1] = 0.0
+			cl_t_ct[2] = (-ck_t_ct[0] + y_kn + c_x_r)*opt.sin(theta_kn) + (ck_t_ct[2] - x_kn - c_z_r)*opt.cos(theta_kn) + c_z_r
+
+			I = opt.SX.eye(3)   
+			cl_R_ct = opt.SX.sym('cl_R_ct',3,3) 
+			cl_R_ct[0,0] = opt.cos(phi + theta_kn)
+			cl_R_ct[0,1] = 0.0
+			cl_R_ct[0,2] = opt.sin(phi + theta_kn) 
+			cl_R_ct[1,0] = 0.0
+			cl_R_ct[1,1] = 1.0
+			cl_R_ct[1,2] = 0.0
+			cl_R_ct[2,0] = -opt.sin(phi + theta_kn)
+			cl_R_ct[2,1] = 0.0
+			cl_R_ct[2,2] = opt.cos(phi + theta_kn)
+
+			t_H_l = cl_R_ct.T @ (I - cl_t_ct.T@(n.T/d))
+
+			J += 0.5*vision_parameters['b11']*(t_H_l[0,0] - self.h11_desired_value[0] )**2  
+			J += 0.5*vision_parameters['b12']*(t_H_l[0,1] - self.h12_desired_value[0] )**2
+			J += 0.5*vision_parameters['b13']*(t_H_l[0,2] - self.h13_desired_value[0] )**2
+			J += 0.5*vision_parameters['b31']*(t_H_l[2,0] - self.h31_desired_value[0] )**2
+			J += 0.5*vision_parameters['b32']*(t_H_l[2,1] - self.h32_desired_value[0] )**2
+			J += 0.5*vision_parameters['b33']*(t_H_l[2,2] - self.h33_desired_value[0] )**2
+
+			# J += 0.5*vision_parameters['b11']*(self.Homography11.get_h11() - self.h11_desired_value[0] )**2  
+			# J += 0.5*vision_parameters['b12']*(self.Homography12.get_h12() - self.h12_desired_value[0] )**2
+			# J += 0.5*vision_parameters['b13']*(self.Homography13.get_h13() - self.h13_desired_value[0] )**2
+			# J += 0.5*vision_parameters['b31']*(self.Homography31.get_h31() - self.h31_desired_value[0] )**2
+			# J += 0.5*vision_parameters['b32']*(self.Homography32.get_h32() - self.h32_desired_value[0] )**2
+			# J += 0.5*vision_parameters['b33']*(self.Homography33.get_h33() - self.h33_desired_value[0] )**2
 							
 			# g.append( theta_kn  )
 			# lbg.append( params_orientation['delta_min'] )
 			# ubg.append( params_orientation['delta_max'] )
 
-			J += ( 0.5*params_position['alpha_v']*v_i**2 ) + ( 0.5*params_orientation['alpha_w']*omega_i**2 )  
+			#J += ( 0.5*params_position['alpha_v']*v_i**2 ) + ( 0.5*params_orientation['alpha_w']*omega_i**2 )  
 			
 			# Obstacle´s constraints
 			# if(is_obstacle):

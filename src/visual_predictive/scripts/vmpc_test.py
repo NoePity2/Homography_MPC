@@ -6,7 +6,7 @@ from mpc_ddr.mpc.nmpc import Pose
 import matplotlib.patches as mpatches
 from VisualControlPython.CameraModels.PlanarCamera import PlanarCamera
 from VisualControlPython.homography import (homogToRt,H_from_points,Rodrigues,yaw_angle_from_rotationMatrix)
-from mpc_ddr.mpc.nmpc import OptimizationHMPC, Homography11,Homography12,Homography13,Homography31,Homography32, Homography33
+from mpc_ddr.mpc.nmpc import OptimizationHMPC
 from mpc_ddr.params.params import orientation_params, position_params, vision_parameters
 #from matplotlib import rc
 #rc('text', usetex=True)
@@ -125,7 +125,7 @@ params_position = position_params()
 
 dt = 0.1
 t0 = 0
-tf = 7
+tf = 5
 times = np.arange(t0,tf,dt)
 trajectory = np.zeros(( 5, len(times) )) 
 
@@ -139,28 +139,28 @@ zz      = np.array([0.5,0.5,1.5,1.5])
 w_points = np.vstack([xx, yy, zz])
 
 # Set the camera target position
-angle_fixed = 90.
+angle_fixed = 90.0
 
 # Target position
-target_x        = 3.0
-target_y        = 0.0
-target_z        = 1.0
-target_roll     = np.deg2rad(0) # Degrees to radians 'x'
-target_pitch    = np.deg2rad(angle_fixed) # Degrees to radians 'y'
-target_yaw      = np.deg2rad(0) # Degrees to radians 'z'
+target_x     = 3.0
+target_y     = 0.0
+target_z     = 1.0
+target_roll  = np.deg2rad(0) # Degrees to radians 'x'
+target_pitch = np.deg2rad(angle_fixed) # Degrees to radians 'y'
+target_yaw   = np.deg2rad(0) # Degrees to radians 'z'
 
 camera1 = PlanarCamera() # Set the camera on the target position
 camera1.set_position(target_x, target_y, target_z, target_roll, target_pitch, target_yaw)
 p1 = camera1.projection(w_points, nPoints) # Project the points for camera 1
 
 # Initial position
-init_x_pos     = 0.0
-init_y_pos     = 0.0
-init_z_pos     = 1.0
+init_x_pos = 0.0
+init_y_pos = 0.0
+init_z_pos = 1.0
 
-init_roll    = np.deg2rad(0)
-init_pitch   = np.deg2rad(angle_fixed)
-init_yaw     = np.deg2rad(0)
+init_roll  = np.deg2rad(0)
+init_pitch = np.deg2rad(angle_fixed)
+init_yaw   = np.deg2rad(0)
 
 camera2 = PlanarCamera() # Set the init camera
 camera2.set_position(init_x_pos, init_y_pos, init_z_pos, init_roll, init_pitch, init_yaw)
@@ -211,8 +211,8 @@ Robot_VMPC = VMPCPython(params_position=params_position,params_orientation=param
 for j in range(len(times)):
    # ============ Optimization for angular velocities and linear velocities =================
    Robot_VMPC.vel_ops()
-   Omega_opt = Robot_VMPC.angular_velocity[0]
-   V_opt     = Robot_VMPC.V_k[0]
+   Omega_opt = Robot_VMPC.angular_velocity[1]
+   V_opt     = Robot_VMPC.V_k[1]
    #================================= Update ============================================#
    #%%%%%%%%%%%%%%%%%% UpdatePredictiveValues(opti_solution) %%%%%%%%%%%%%%%%%%%%%%%%%%%%#
    Robot_VMPC.update_predictive_values() #Predice los elementos de la homografía
@@ -276,7 +276,6 @@ for j in range(len(times)):
    trajectory[2][j] = x[2]
    trajectory[3][j] = u[0]
    trajectory[4][j] = u[1]
-
 
 
 robot = Robot.dib_robot([trajectory[0,-1],trajectory[1,-1],trajectory[2,-1]],0.05)
