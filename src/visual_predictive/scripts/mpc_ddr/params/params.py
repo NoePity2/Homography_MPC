@@ -43,12 +43,12 @@ def position_params():
 
 def vision_parameters():
 
-	b11 = 1e2
-	b12 = 1e2
-	b13 = 1e2
-	b31 = 1e2
-	b32 = 1e2
-	b33 = 1e2
+	b11 = 1e3
+	b12 = 1e3
+	b13 = 1e3
+	b31 = 1e3
+	b32 = 1e3
+	b33 = 1e3
 
 	params = {
 		'b11': b11,

@@ -192,6 +192,7 @@ H = H_from_points(p2,p1)
 He = K2_inv.dot(H.dot(K1))
 #============== Decomposition of the homography matrix ====================
 R,tr,normal,d = homogToRt(He)
+print(normal)
 #============== Get the yaw angle ===========
 yaw_angle_k = -yaw_angle_from_rotationMatrix(R)
 #============================================ Parameters ===================================================
@@ -295,7 +296,7 @@ ax.plot(trajectory[0,:],trajectory[1,:],z_camera_Array) # Plot camera trajectory
 axis_scale      = 0.5
 camera_scale    = 0.09
 camera1.draw_camera(ax, scale=camera_scale, color='red')
-camera1.draw_frame(ax, scale=axis_scale, c='black')
+#camera1.draw_frame(ax, scale=axis_scale, c='black')
 
 camera2.set_position(x_pos, y_pos, z_pos, roll, pitch, yaw)
 camera2.draw_camera(ax, scale=camera_scale, color='cyan')
@@ -303,7 +304,7 @@ camera2.draw_camera(ax, scale=camera_scale, color='cyan')
 
 camera2.set_position(init_x_pos, init_y_pos, init_z_pos, init_roll, init_pitch, init_yaw)
 camera2.draw_camera(ax, scale=camera_scale, color='blue')
-camera2.draw_frame(ax, scale=axis_scale, c='black')
+#camera2.draw_frame(ax, scale=axis_scale, c='black')
 limit_x = 1.0
 limit_y = 1.0
 limit_z = 1.0

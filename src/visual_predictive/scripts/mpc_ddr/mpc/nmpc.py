@@ -415,12 +415,12 @@ class OptimizationHMPC(object):
 		# initial conditions
 		Xk = opt.SX.sym('X0', 3)
 		w += [Xk]
-		lbw += [x_k, y_k, theta_k]
-		ubw += [x_k, y_k, theta_k ]
+		lbw += [0.0, 0.0, 0.0]
+		ubw += [0.01, 0.01, 0.01 ]
 
 		Uk = opt.SX.sym('U0', 2)
 		w += [Uk]
-		lbw += [0, 0]
+		lbw += [0,0]
 		ubw += [0,0 ]			
 
 		sum_x = 0
@@ -454,7 +454,7 @@ class OptimizationHMPC(object):
 			# Add equality constraint
 			g   += [Xk_end-Xk]
 			lbg += [0, 0, 0]
-			ubg += [0, 0, 0]		
+			ubg += [0.01, 0.01, 0.01]		
 
 			#Orientation cost function
 			sum_Omega += T*omega_i
@@ -497,7 +497,7 @@ class OptimizationHMPC(object):
 			cl_R_ct[2,1] = 0.0
 			cl_R_ct[2,2] = opt.cos(phi + theta_kn)
 
-			t_H_l = cl_R_ct.T @ (I - cl_t_ct.T@(n.T/d))
+			t_H_l = cl_R_ct.T @ (I - cl_t_ct@(n.reshape((1,3))/d))
 
 			J += 0.5*vision_parameters['b11']*(t_H_l[0,0] - self.h11_desired_value[0] )**2  
 			J += 0.5*vision_parameters['b12']*(t_H_l[0,1] - self.h12_desired_value[0] )**2
