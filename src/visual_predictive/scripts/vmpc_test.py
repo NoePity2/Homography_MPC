@@ -115,7 +115,7 @@ class VMPCPython():
 #-----------------------------------------------------------------------------------------------------------
 
 #============================================ Parameters ===================================================
-N = 15 # number of control intervals
+N = 10 # number of control intervals
 
 # ============== Linear parameters ==============
 state_vector = np.array([[0],[0]])
@@ -125,7 +125,7 @@ params_position = position_params()
 
 dt = 0.1
 t0 = 0
-tf = 5
+tf = 15
 times = np.arange(t0,tf,dt)
 trajectory = np.zeros(( 5, len(times) )) 
 
