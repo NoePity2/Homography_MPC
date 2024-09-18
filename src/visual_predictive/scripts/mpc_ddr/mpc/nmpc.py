@@ -155,7 +155,6 @@ class HomographyMPC:
 		self.c_x_r   = c_x_r
 		self.c_z_r   = c_z_r
 
-
 		self.theta   = theta
 		self.phi     = phi
 		self.nx_d    = self.nx/self.d
@@ -164,27 +163,12 @@ class HomographyMPC:
 
 		self.a_row_1 = -np.sin(self.phi) 
 		self.b_row_1 = -np.cos(self.phi) 
-		self.c_row_1 = 0.0
-		self.d_row_1 = self.d*(-self.ck_x_ct*np.sin(self.phi) + self.ck_z_ct*np.cos(self.phi))
-		self.e_row_1 = 0.0
+		self.d_row_1 = self.d*(-self.ck_x_ct*np.cos(self.phi) + self.ck_z_ct*np.sin(self.phi))
 
 		self.a_row_3 = np.cos(self.phi) 
 		self.b_row_3 = -np.sin(self.phi) 
-		self.c_row_3 = 0.0
-		self.d_row_3 = self.d*(-self.ck_x_ct*np.cos(self.phi) - self.ck_z_ct*np.sin(self.phi))
-		self.e_row_3 = 0.0
+		self.d_row_3 = self.d*(-self.ck_x_ct*np.sin(self.phi) - self.ck_z_ct*np.cos(self.phi))
 
-		# self.a_row_1 = np.sin(2*self.theta)*np.sin(self.phi) - np.cos(2*self.theta)*np.cos(self.phi)
-		# self.b_row_1 = np.sin(2*self.theta)*np.cos(self.phi) + np.cos(2*self.theta)*np.sin(self.phi)
-		# self.c_row_1 = self.c_x_r*( np.sin(self.phi + self.theta) - np.sin(self.phi) )
-		# self.d_row_1 = self.d*(self.ck_x_ct*np.sin(self.phi) + self.ck_z_ct*np.cos(self.phi))
-		# self.e_row_1 = self.c_z_r*( np.cos(self.phi + self.theta) - np.cos(self.phi) )
-
-		# self.a_row_3 = -np.sin(2*self.theta)*np.cos(self.phi) - np.cos(2*self.theta)*np.sin(self.phi)
-		# self.b_row_3 = np.sin(2*self.theta)*np.sin(self.phi) - np.cos(2*self.theta)*np.cos(self.phi)
-		# self.c_row_3 = self.c_x_r*( np.cos(self.phi + self.theta) - np.cos(self.phi) )
-		# self.d_row_3 = self.d*(-self.ck_x_ct*np.cos(self.phi) + self.ck_z_ct*np.sin(self.phi))
-		# self.e_row_3 = self.c_z_r*( np.sin(self.phi + self.theta) - np.sin(self.phi) )
 
 	def get_predictive_state_values(self,v,omega,state_vector,T):
 		x_k     = state_vector[0]
@@ -204,20 +188,14 @@ class Homography11(HomographyMPC):
 		self.expected_value = 1.0
 
 	def get_h11(self):
-		return self.nx_d*( self.rk_x_rl*self.a_row_1 + self.rk_y_rl*self.b_row_1 + self.c_row_1 + self.d_row_1 + self.e_row_1) + np.cos(self.phi + self.theta)
+		return self.nx_d*( self.rk_x_rl*self.a_row_1 + self.rk_y_rl*self.b_row_1 +  self.d_row_1) + np.cos(self.phi + self.theta)
 	
 	def predicted_value(self,v,omega,state_vector,T):
 
 		rk_x_rl,rk_y_rl,theta_kn = self.get_predictive_state_values(v,omega,state_vector,T)
 
 		return self.nx_d*( -np.sin(self.phi)*rk_x_rl - np.cos(self.phi)*rk_y_rl  + self.d_row_1 ) + np.cos(self.phi + theta_kn)
-			
-		# val1 = np.sin(2*theta_kn)*np.sin(self.phi) - np.cos(2*theta_kn)*np.cos(self.phi)
-		# val2 = np.sin(2*theta_kn)*np.cos(self.phi) + np.cos(2*theta_kn)*np.sin(self.phi)
-		# val3 = self.c_x_r*( np.sin(self.phi + theta_kn) - np.sin(self.phi) )
-		# val4 = self.c_z_r*( np.cos(self.phi + theta_kn) - np.cos(self.phi) )
-		# return self.nx_d*( rk_x_rl*val1 + rk_y_rl*val2 + val3 + val4 + self.d_row_1 ) + np.cos(self.phi + theta_kn)
-	
+
 	def get_expected_value(self):
 		return self.expected_value
 
@@ -227,20 +205,14 @@ class Homography12(HomographyMPC):
 		self.expected_value = 0.0
 
 	def get_h12(self):
-		return self.ny_d*( self.rk_x_rl*self.a_row_1 + self.rk_y_rl*self.b_row_1 + self.c_row_1 + self.d_row_1 + self.e_row_1)
+		return self.ny_d*( self.rk_x_rl*self.a_row_1 + self.rk_y_rl*self.b_row_1  + self.d_row_1 )
 	
 	def predicted_value(self,v,omega,state_vector,T):
 
 		rk_x_rl,rk_y_rl,theta_kn = self.get_predictive_state_values(v,omega,state_vector,T)
 
 		return self.ny_d*( -np.sin(self.phi)*rk_x_rl - np.cos(self.phi)*rk_y_rl  + self.d_row_1)
-	
-		# val1 = np.sin(2*theta_kn)*np.sin(self.phi) - np.cos(2*theta_kn)*np.cos(self.phi)
-		# val2 = np.sin(2*theta_kn)*np.cos(self.phi) + np.cos(2*theta_kn)*np.sin(self.phi)
-		# val3 = self.c_x_r*( np.sin(self.phi + theta_kn) - np.sin(self.phi) )
-		# val4 = self.c_z_r*( np.cos(self.phi + theta_kn) - np.cos(self.phi) )
-		# return self.ny_d*( rk_x_rl*val1 + rk_y_rl*val2 + val3 + val4 + self.d_row_1)
-	
+		
 	def get_expected_value(self):
 		return self.expected_value
 
@@ -250,19 +222,12 @@ class Homography13(HomographyMPC):
 		self.expected_value = 0.0
 
 	def get_h13(self):
-		return self.nz_d*( self.rk_x_rl*self.a_row_1 + self.rk_y_rl*self.b_row_1 + self.c_row_1 + self.d_row_1 + self.e_row_1) - np.sin(self.phi + self.theta)
+		return self.nz_d*( self.rk_x_rl*self.a_row_1 + self.rk_y_rl*self.b_row_1 + self.d_row_1) - np.sin(self.phi + self.theta)
 	
 	def predicted_value(self,v,omega,state_vector,T):
 
 		rk_x_rl,rk_y_rl,theta_kn = self.get_predictive_state_values(v,omega,state_vector,T)
-
 		return self.nz_d*( -np.sin(self.phi)*rk_x_rl - np.cos(self.phi)*rk_y_rl  + self.d_row_1) - np.sin(self.phi + theta_kn)
-	
-		# val1 = np.sin(2*theta_kn)*np.sin(self.phi) - np.cos(2*theta_kn)*np.cos(self.phi)
-		# val2 = np.sin(2*theta_kn)*np.cos(self.phi) + np.cos(2*theta_kn)*np.sin(self.phi)
-		# val3 = self.c_x_r*( np.sin(self.phi + theta_kn) - np.sin(self.phi) )
-		# val4 = self.c_z_r*( np.cos(self.phi + theta_kn) - np.cos(self.phi) )
-		# return self.nz_d*( rk_x_rl*val1 + rk_y_rl*val2 + val3 + val4 + self.d_row_1) + np.sin(self.phi + theta_kn)
 	
 	def get_expected_value(self):
 		return self.expected_value
@@ -273,19 +238,13 @@ class Homography31(HomographyMPC):
 		self.expected_value = 0.0
 
 	def get_h31(self):
-		return self.nx_d*( self.rk_x_rl*self.a_row_3 + self.rk_y_rl*self.b_row_3 + self.c_row_3 + self.d_row_3 + self.e_row_3) + np.sin(self.phi + self.theta)
+		return self.nx_d*( self.rk_x_rl*self.a_row_3 + self.rk_y_rl*self.b_row_3 + self.d_row_3) + np.sin(self.phi + self.theta)
 	
 	def predicted_value(self,v,omega,state_vector,T):
 
 		rk_x_rl,rk_y_rl,theta_kn = self.get_predictive_state_values(v,omega,state_vector,T)
 
 		return self.nx_d*( np.cos(self.phi)*rk_x_rl - np.sin(self.phi)*rk_y_rl  + self.d_row_3) + np.sin(self.phi + theta_kn)
-	
-		# val1 = -np.sin(2*theta_kn)*np.cos(self.phi) - np.cos(2*theta_kn)*np.sin(self.phi)
-		# val2 = np.sin(2*theta_kn)*np.sin(self.phi) - np.cos(2*theta_kn)*np.cos(self.phi)
-		# val3 = self.c_x_r*( np.cos(self.phi + theta_kn) - np.cos(self.phi) )
-		# val4 = self.c_z_r*( np.sin(self.phi + theta_kn) - np.sin(self.phi) )
-		# return self.nx_d*( rk_x_rl*val1 + rk_y_rl*val2 + val3 + val4 + self.d_row_3) - np.sin(self.phi + theta_kn)
 	
 	def get_expected_value(self):
 		return self.expected_value
@@ -296,19 +255,14 @@ class Homography32(HomographyMPC):
 		self.expected_value = 0.0
 
 	def get_h32(self):
-		return self.ny_d*( self.rk_x_rl*self.a_row_3 + self.rk_y_rl*self.b_row_3 + self.c_row_3 + self.d_row_3 + self.e_row_3)
+		return self.ny_d*( self.rk_x_rl*self.a_row_3 + self.rk_y_rl*self.b_row_3  + self.d_row_3)
 
 	def predicted_value(self,v,omega,state_vector,T):
 
 		rk_x_rl,rk_y_rl,theta_kn = self.get_predictive_state_values(v,omega,state_vector,T)
 
 		return 	self.ny_d*( np.cos(self.phi)*rk_x_rl - np.sin(self.phi)*rk_y_rl + self.d_row_3)
-	
-		# val1 = -np.sin(2*theta_kn)*np.cos(self.phi) - np.cos(2*theta_kn)*np.sin(self.phi)
-		# val2 = np.sin(2*theta_kn)*np.sin(self.phi) - np.cos(2*theta_kn)*np.cos(self.phi)
-		# val3 = self.c_x_r*( np.cos(self.phi + theta_kn) - np.cos(self.phi) )
-		# val4 = self.c_z_r*( np.sin(self.phi + theta_kn) - np.sin(self.phi) )
-		# return 	self.ny_d*( rk_x_rl*val1 + rk_y_rl*val2 + val3 + val4 + self.d_row_3)
+
 	
 	def get_expected_value(self):
 		return self.expected_value
@@ -319,19 +273,14 @@ class Homography33(HomographyMPC):
 		self.expected_value = 1.0
 
 	def get_h33(self):
-		return self.nz_d*( self.rk_x_rl*self.a_row_3 + self.rk_y_rl*self.b_row_3 + self.c_row_3 + self.d_row_3 + self.e_row_3) + np.cos(self.phi + self.theta)
+		return self.nz_d*( self.rk_x_rl*self.a_row_3 + self.rk_y_rl*self.b_row_3 + self.d_row_3) + np.cos(self.phi + self.theta)
 	
 	def predicted_value(self,v,omega,state_vector,T):
 
 		rk_x_rl,rk_y_rl,theta_kn = self.get_predictive_state_values(v,omega,state_vector,T)
 
 		return self.nz_d*( np.cos(self.phi)*rk_x_rl - np.sin(self.phi)*rk_y_rl + self.d_row_3) + np.cos(self.phi + theta_kn)
-	
-		# val1 = -np.sin(2*theta_kn)*np.cos(self.phi) - np.cos(2*theta_kn)*np.sin(self.phi)
-		# val2 = np.sin(2*theta_kn)*np.sin(self.phi) - np.cos(2*theta_kn)*np.cos(self.phi)
-		# val3 = self.c_x_r*( np.cos(self.phi + theta_kn) - np.cos(self.phi) )
-		# val4 = self.c_z_r*( np.sin(self.phi + theta_kn) - np.sin(self.phi) )
-		# return self.nz_d*( rk_x_rl*val1 + rk_y_rl*val2 + val3 + val4 + self.d_row_3) + np.cos(self.phi + theta_kn)
+
 	
 	def get_expected_value(self):
 		return self.expected_value 
@@ -443,10 +392,10 @@ class OptimizationHMPC(object):
 		# lbw += [0.0, 0.0, 0.0]
 		# ubw += [0.01, 0.01, 0.01 ]
 
-		# Uk = opt.SX.sym('U0', 2)
-		# w += [Uk]
-		# lbw += [0,0]
-		# ubw += [0,0 ]			
+		Uk = opt.SX.sym('U0', 2)
+		w += [Uk]
+		lbw += [0,0]
+		ubw += [0,0 ]			
 
 		sum_x = 0
 		sum_y = 0
@@ -538,8 +487,8 @@ class OptimizationHMPC(object):
 		solution = solver(lbx=lbw, ubx=ubw, lbg=lbg, ubg=ubg)
 		#print(solution['x'])
 		
-		self.V_opt     = solution['x'][3::5]
-		self.Omega_opt = solution['x'][4::5]
+		self.V_opt     = solution['x'][0::2]
+		self.Omega_opt = solution['x'][1::2]
 		print(solution['x'])	
 		self.min_function_value = solution['f']
 
