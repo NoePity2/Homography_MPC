@@ -10,14 +10,20 @@ rc('text', usetex=True)
 # plt.rcParams.update({'font.size': 12})
 
 
+
+
 #==================== Visión terms ========================#
 #Create the world points
-nPoints = 4
-xx       = np.array([5.5,5.5,5.5,5.5])
-yy       = np.array([-0.5,0.5,0.5,-0.5])
-zz       = np.array([0.5,0.5,1.5,1.5])
+n_points = 20
 
-w_points = np.vstack([xx, yy, zz])
+xmin = 5.5 
+ymin = 1.0
+ymax = 4.0
+zmin = 1
+zmax = 6
+w_points = get_3D_target_points(n_points,xmin,ymin,ymax,zmin,zmax).transpose()
+
+print(w_points)
 
 # Set the camera target position
 angle_fixed = 90.
@@ -32,7 +38,7 @@ target_yaw      = np.deg2rad(0.0) # Degrees to radians 'z'
 
 camera1 = PlanarCamera() # Set the target camera
 camera1.set_position(target_x, target_y, target_z, target_roll, target_pitch, target_yaw)
-p1 = camera1.projection(w_points, nPoints) # Project the points for camera 1
+p1 = camera1.projection(w_points, n_points) # Project the points for camera 1
 
 # Initial position
 init_x_pos     = 0.0
@@ -45,7 +51,7 @@ init_yaw     = np.deg2rad(0.0)
 
 camera2 = PlanarCamera() # Set the init camera
 camera2.set_position(init_x_pos, init_y_pos, init_z_pos, init_roll, init_pitch, init_yaw)
-p2 = camera2.projection(w_points, nPoints) # Project the points for camera 2
+p2 = camera2.projection(w_points, n_points) # Project the points for camera 2
 
 # #=============== Cameras matrix ===============
 # K1      = camera1.K
@@ -70,17 +76,17 @@ fig = plt.figure()
 fig.suptitle('World setting')
 
 ax = fig.add_subplot(1, 1, 1, projection='3d')
-ax = fig.gca(projection='3d')
-ax.plot(xx, yy, zz, 'o')
+#ax = fig.gca(projection='3d')
+ax.plot(w_points[0,:], w_points[1,:], w_points[2,:], 'o')
 
 axis_scale      = 0.5
 camera_scale    = 0.09
 camera1.draw_camera(ax, scale=camera_scale, color='red')
-camera1.draw_frame(ax, scale=axis_scale, c='black')
+#camera1.draw_frame(ax, scale=axis_scale, c='black')
 
 
 camera2.draw_camera(ax, scale=camera_scale, color='blue')
-camera2.draw_frame(ax, scale=axis_scale, c='black')
+#camera2.draw_frame(ax, scale=axis_scale, c='black')
 limit_x = 1.0
 limit_y = 1.0
 limit_z = 1.0
@@ -105,8 +111,6 @@ ax.grid(True)
 ax.legend([mpatches.Patch(color='red'),
          mpatches.Patch(color='blue')],
          ['Desired', 'Init'], loc=2)
-
-
 
 plt.show()
 

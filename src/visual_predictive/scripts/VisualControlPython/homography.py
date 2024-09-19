@@ -6,6 +6,7 @@ Created on Thu Jun 30 15:47:41 2016
 """
 import numpy as np
 import math
+import cv2
 
 def unitize(x,y):
     l = x/(math.sqrt(x**2+y**2)) 
@@ -148,4 +149,8 @@ def rotation_from_matrix(matrix):
     return angle, direction, point
 
 def yaw_angle_from_rotationMatrix(rotation_matrix):
-    return np.arctan(rotation_matrix[0, 2] / rotation_matrix[0, 0]);
+    return np.arctan(rotation_matrix[0, 2] / rotation_matrix[0, 0])
+
+def H_from_points_opencv(fp,tp):
+    H, status = cv2.findHomography(fp, tp)
+    return H / H[1,1]

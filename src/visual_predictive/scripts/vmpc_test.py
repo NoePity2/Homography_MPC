@@ -5,7 +5,7 @@ import mpc_ddr.utils.Robot as Robot
 from mpc_ddr.mpc.nmpc import Pose
 import matplotlib.patches as mpatches
 from VisualControlPython.CameraModels.PlanarCamera import PlanarCamera
-from VisualControlPython.homography import (homogToRt,H_from_points,Rodrigues,yaw_angle_from_rotationMatrix)
+from VisualControlPython.homography import (homogToRt,H_from_points,Rodrigues,yaw_angle_from_rotationMatrix,H_from_points_opencv)
 from mpc_ddr.mpc.nmpc import OptimizationHMPC
 from mpc_ddr.params.params import orientation_params, position_params, vision_parameters
 #from matplotlib import rc
@@ -110,6 +110,18 @@ class VMPCPython():
    def get_h_predictive_values(self):
       return np.array(self.predicted_values)
 
+def get_3D_target_points(n_points,xmin,ymin,ymax,zmin,zmax):
+
+    w_points = []
+    for _ in range(n_points):
+        xx = np.random.uniform(xmin, xmin)
+        yy = np.random.uniform(ymin, ymax)
+        zz = np.random.uniform(zmin, zmax)
+        w_points.append([xx, yy, zz])
+
+    return np.asarray(w_points)
+
+
 #============================================ classes ======================================================
 
 #-----------------------------------------------------------------------------------------------------------
@@ -125,24 +137,33 @@ params_position = position_params()
 
 dt = 0.1
 t0 = 0
-tf = 15
+tf = 18
 times = np.arange(t0,tf,dt)
 trajectory = np.zeros(( 5, len(times) )) 
 
 #==================== Visión terms ========================#
 #Create the world points
-nPoints = 4
-xx      = np.array([5.5,5.5,5.5,5.5])
-yy      = np.array([-0.5,0.5,0.5,-0.5])
-zz      = np.array([0.5,0.5,1.5,1.5])
+# nPoints = 4
+# xx      = np.array([5.5,5.5,5.5,5.5])
+# yy      = np.array([-0.5,0.5,0.5,-0.5])
+# zz      = np.array([0.5,0.5,1.5,1.5])
 
-w_points = np.vstack([xx, yy, zz])
+# w_points = np.vstack([xx, yy, zz])
+
+n_points = 4
+
+xmin = 5.5 
+ymin = 1.0
+ymax = 4.0
+zmin = 1
+zmax = 6
+w_points = get_3D_target_points(n_points,xmin,ymin,ymax,zmin,zmax).transpose()
 
 # Set the camera target position
 angle_fixed = 90.0
 
 # Target position
-target_x     = 3.0
+target_x     = 4.0
 target_y     = 0.0
 target_z     = 1.0
 target_roll  = np.deg2rad(0) # Degrees to radians 'x'
@@ -151,7 +172,7 @@ target_yaw   = np.deg2rad(0) # Degrees to radians 'z'
 
 camera1 = PlanarCamera() # Set the camera on the target position
 camera1.set_position(target_x, target_y, target_z, target_roll, target_pitch, target_yaw)
-p1 = camera1.projection(w_points, nPoints) # Project the points for camera 1
+p1 = camera1.projection(w_points, n_points) # Project the points for camera 1
 
 # Initial position
 init_x_pos = 0.0
@@ -164,9 +185,9 @@ init_yaw   = np.deg2rad(0)
 
 camera2 = PlanarCamera() # Set the init camera
 camera2.set_position(init_x_pos, init_y_pos, init_z_pos, init_roll, init_pitch, init_yaw)
-p2 = camera2.projection(w_points, nPoints)
+p2 = camera2.projection(w_points, n_points)
 
-pixelCoordsArray  = np.zeros((2*nPoints,len(times)))   # List to save points positions on the image
+pixelCoordsArray  = np.zeros((2*n_points,len(times)))   # List to save points positions on the image
 averageErrorArray = np.zeros(len(times))               # Matrix to save error points positions
 z_camera_Array    = np.zeros(len(times)) 
 h_predicted_values_array = np.zeros((6,len(times)))
@@ -187,7 +208,8 @@ K2_inv  = np.linalg.inv(K2)
 
 #============================================ Estimate a first homograpy matriz ==========================
 #====================== Estimate the homography matrix ===========================
-H = H_from_points(p2,p1)
+#H = H_from_points(p2,p1)
+H = H_from_points_opencv(p2,p1)
 #====================== Euclidian homograpy matrix ===============================
 He = K2_inv.dot(H.dot(K1))
 #============== Decomposition of the homography matrix ====================
@@ -236,14 +258,15 @@ for j in range(len(times)):
    pitch = np.deg2rad(angle_fixed) + yaw_angle_k
 
    camera2.set_position(x_pos, y_pos, z_pos, roll, pitch, yaw)
-   p2 = camera2.projection(w_points, nPoints)
+   p2 = camera2.projection(w_points, n_points)
    
    #%%%%%%%%%%%%%%%%%% PrepareDataForNextOptimizacion(opti_solution) %%%%%%%%%%%%%%%%%%%%# 
    
    #================================= Update  visual data ============================================#
 
    #====================== Estimate the homography matrix ===========================
-   H = H_from_points(p2,p1)
+   #H = H_from_points(p2,p1)
+   H = H_from_points_opencv(p2,p1)
    #====================== Euclidian homograpy matrix ===============================
    He = K2_inv.dot(H.dot(K1))
    Robot_VMPC.set_homograpy(He.reshape((9,1)))
@@ -265,9 +288,9 @@ for j in range(len(times)):
 
    Robot_VMPC.set_desired_values() #valores deseados de los elementos de la homografia
  
-   pixelCoordsArray[:,j] = p2.reshape((2*nPoints,1), order='F')[:,0]
+   pixelCoordsArray[:,j] = p2.reshape((2*n_points,1), order='F')[:,0]
    pixel_error           = p2-p1
-   averageErrorArray[j]  = np.mean(np.linalg.norm(pixel_error.reshape((2*nPoints,1), order='F')))
+   averageErrorArray[j]  = np.mean(np.linalg.norm(pixel_error.reshape((2*n_points,1), order='F')))
    z_camera_Array[j]     = z_pos
 
    Robot_VMPC.reset_state() # This is due to the optimization is done with respect to the robot's frame
@@ -288,7 +311,7 @@ fig.suptitle('World setting')
 
 ax = fig.add_subplot(2, 2, 1, projection='3d')
 # ax = fig.gca(projection='3d')
-ax.plot(xx, yy, zz, 'o')
+ax.plot(w_points[0,:], w_points[1,:], w_points[2,:], 'o')
 
 ax.plot(trajectory[0,:],trajectory[1,:],z_camera_Array) # Plot camera trajectory
 
@@ -296,15 +319,15 @@ ax.plot(trajectory[0,:],trajectory[1,:],z_camera_Array) # Plot camera trajectory
 axis_scale      = 0.5
 camera_scale    = 0.09
 camera1.draw_camera(ax, scale=camera_scale, color='red')
-camera1.draw_frame(ax, scale=axis_scale, c='black')
+#camera1.draw_frame(ax, scale=axis_scale, c='black')
 
 camera2.set_position(x_pos, y_pos, z_pos, roll, pitch, yaw)
 camera2.draw_camera(ax, scale=camera_scale, color='cyan')
-camera2.draw_frame(ax, scale=axis_scale, c='black')
+#camera2.draw_frame(ax, scale=axis_scale, c='black')
 
 camera2.set_position(init_x_pos, init_y_pos, init_z_pos, init_roll, init_pitch, init_yaw)
 camera2.draw_camera(ax, scale=camera_scale, color='blue')
-camera2.draw_frame(ax, scale=axis_scale, c='black')
+#camera2.draw_frame(ax, scale=axis_scale, c='black')
 limit_x = 1.0
 limit_y = 1.0
 limit_z = 1.0
@@ -318,7 +341,7 @@ ax.set_title('World setting')
  # ======================================  Plot the pixels ==========================================
 ax = fig.add_subplot(2, 2, 2)
 
-p20 = pixelCoordsArray[:,0].reshape((2,nPoints), order='F')
+p20 = pixelCoordsArray[:,0].reshape((2,n_points), order='F')
 ax.plot(p1[0, :],  p1[1, :], 'o', color='red')
 ax.plot(p20[0, :], p20[1, :], 'o', color='blue')
 
