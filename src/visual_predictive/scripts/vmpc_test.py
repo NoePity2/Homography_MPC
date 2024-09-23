@@ -128,46 +128,39 @@ def get_3D_target_points(n_points,xmin,ymin,ymax,zmin,zmax):
 
 #============================================ Parameters ===================================================
 N = 5 # number of control intervals
-
+theta_k_w = 0.0
 # ============== Linear parameters ==============
-state_vector = np.array([[0],[0]])
-x  = np.zeros( (3,1) ) 
-x_new = np.array( [ [0],[0],[0]] )
+x     = np.array( [ [0],[0],[np.deg2rad(theta_k_w)]] )
+x_new = np.array( [ [0],[0],[np.deg2rad(theta_k_w)]] )
 params_position = position_params()
 
 dt = 0.1
 t0 = 0
-tf = 18
+tf = 20
 times = np.arange(t0,tf,dt)
 trajectory = np.zeros(( 5, len(times) )) 
 
 #==================== Visión terms ========================#
 #Create the world points
-# nPoints = 4
-# xx      = np.array([5.5,5.5,5.5,5.5])
-# yy      = np.array([-0.5,0.5,0.5,-0.5])
-# zz      = np.array([0.5,0.5,1.5,1.5])
-
-# w_points = np.vstack([xx, yy, zz])
-
-n_points = 4
+n_points = 40
 
 xmin = 5.5 
-ymin = 1.0
-ymax = 4.0
-zmin = 1
+ymin = 3.0
+ymax = 9.0
+zmin = -1
 zmax = 6
 w_points = get_3D_target_points(n_points,xmin,ymin,ymax,zmin,zmax).transpose()
 
 # Set the camera target position
-angle_fixed = 90.0
+angle_fixed  = 90.0
+theta_target = 30.0
 
 # Target position
 target_x     = 4.0
-target_y     = 0.0
+target_y     = 2.0
 target_z     = 1.0
 target_roll  = np.deg2rad(0) # Degrees to radians 'x'
-target_pitch = np.deg2rad(angle_fixed) # Degrees to radians 'y'
+target_pitch = np.deg2rad(angle_fixed - theta_target) # Degrees to radians 'y'
 target_yaw   = np.deg2rad(0) # Degrees to radians 'z'
 
 camera1 = PlanarCamera() # Set the camera on the target position
@@ -180,7 +173,7 @@ init_y_pos = 0.0
 init_z_pos = 1.0
 
 init_roll  = np.deg2rad(0)
-init_pitch = np.deg2rad(angle_fixed)
+init_pitch = np.deg2rad(angle_fixed - theta_k_w)
 init_yaw   = np.deg2rad(0)
 
 camera2 = PlanarCamera() # Set the init camera
@@ -234,8 +227,8 @@ Robot_VMPC = VMPCPython(params_position=params_position,params_orientation=param
 for j in range(len(times)):
    # ============ Optimization for angular velocities and linear velocities =================
    Robot_VMPC.vel_ops()
-   Omega_opt = Robot_VMPC.angular_velocity[1]
-   V_opt     = Robot_VMPC.V_k[1]
+   Omega_opt = Robot_VMPC.angular_velocity[0]
+   V_opt     = Robot_VMPC.V_k[0]
    #================================= Update ============================================#
    #%%%%%%%%%%%%%%%%%% UpdatePredictiveValues(opti_solution) %%%%%%%%%%%%%%%%%%%%%%%%%%%%#
    Robot_VMPC.update_predictive_values() #Predice los elementos de la homografía
@@ -249,13 +242,12 @@ for j in range(len(times)):
    u = np.array([ V_opt, Omega_opt  ])
    x = Robot.robot_ddr(x_new,u,dt)
    print( "x = ", x )
-   state_vector = np.array([  x[0] , x[1]  ]) 
-   theta_k = x[2]
+   theta_k_w = x[2]
    x_new = x
 
    x_pos = x[0, 0]
    y_pos = x[1, 0]
-   pitch = np.deg2rad(angle_fixed) + yaw_angle_k
+   pitch = np.deg2rad(angle_fixed ) - yaw_angle_k
 
    camera2.set_position(x_pos, y_pos, z_pos, roll, pitch, yaw)
    p2 = camera2.projection(w_points, n_points)
@@ -265,7 +257,6 @@ for j in range(len(times)):
    #================================= Update  visual data ============================================#
 
    #====================== Estimate the homography matrix ===========================
-   #H = H_from_points(p2,p1)
    H = H_from_points_opencv(p2,p1)
    #====================== Euclidian homograpy matrix ===============================
    He = K2_inv.dot(H.dot(K1))
@@ -283,8 +274,8 @@ for j in range(len(times)):
    Robot_VMPC.set_d_value(d)
    Robot_VMPC.set_n_vector(normal)
    #============== Get the yaw angle ===========
-   yaw_angle_k = yaw_angle_from_rotationMatrix(R)
-   Robot_VMPC.phi_k = Robot_VMPC.PHI_TARGET - yaw_angle_k
+   yaw_angle_k = -yaw_angle_from_rotationMatrix(R)
+   Robot_VMPC.phi_k =  yaw_angle_k
 
    Robot_VMPC.set_desired_values() #valores deseados de los elementos de la homografia
  
@@ -353,10 +344,10 @@ ax.legend([mpatches.Patch(color='red'),
          mpatches.Patch(color='blue')],
          ['Desired', 'Init'], loc=2)
 
-ax.plot(pixelCoordsArray[0,0:j], pixelCoordsArray[1,0:j])
-ax.plot(pixelCoordsArray[2,0:j], pixelCoordsArray[3,0:j])
-ax.plot(pixelCoordsArray[4,0:j], pixelCoordsArray[5,0:j])
-ax.plot(pixelCoordsArray[6,0:j], pixelCoordsArray[7,0:j])
+# ax.plot(pixelCoordsArray[0,0:j], pixelCoordsArray[1,0:j])
+# ax.plot(pixelCoordsArray[2,0:j], pixelCoordsArray[3,0:j])
+# ax.plot(pixelCoordsArray[4,0:j], pixelCoordsArray[5,0:j])
+# ax.plot(pixelCoordsArray[6,0:j], pixelCoordsArray[7,0:j])
 
 ax = fig.add_subplot(2, 2, 3)
 colors = ['red','green','blue','magenta','cyan','yellow']

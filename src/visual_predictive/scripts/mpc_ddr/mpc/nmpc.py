@@ -342,37 +342,10 @@ class OptimizationHMPC(object):
 		N      = self.N
 		T      = self.T
 		
-		#Init the state vector to zero due to the optimización is local at robot frame.
+		# #Init the state vector to zero due to the optimización is local at robot frame.
 		x_k     = float(state_vector[0])
 		y_k     = float(state_vector[1])
 		theta_k = float(state_vector[2])
-
-		x_x = opt.SX.sym('x_x')
-		x_y = opt.SX.sym('x_y')
-		x_theta = opt.SX.sym('x_theta')
-
-		u_v = opt.SX.sym('u_v')
-		u_w = opt.SX.sym('u_w')
-
-		x   = opt.vertcat(x_x,x_y,x_theta)
-		u   = opt.vertcat(u_v, u_w)
-
-		# DDR's kinematic model
-		xdot = opt.vertcat( u_v*opt.cos(x_theta), u_v*opt.sin(x_theta), u_w )
-
-		L = 0.01*0.5*x_x**2 + 0.01*0.5*x_y**2 + 0.01*0.5*x_theta**2 + 0.5*params_position['alpha_v']*u_v**2 + 0.5*params_orientation['alpha_w']*u_w**2
-
-		# Fixed step Euler integrator
-		f = opt.Function('f', [x, u], [xdot, L])
-		X0 = opt.SX.sym('X0', 3)
-		U = opt.SX.sym('U',2)
-		X = X0
-		Q = 0
-		k1, k1_q = f(X, U)
-		X = X + T*k1
-		Q = Q + T*k1_q
-	
-		F = opt.Function('F', [X0, U], [X, Q],['x0','u'],['xf','qf'])
 
 		# Start with an empty NLP
 		w   = []
@@ -385,17 +358,6 @@ class OptimizationHMPC(object):
 
 		#Orientation references
 		Theta_ref = self.get_thetas_ref(phi)
-
-		# initial conditions
-		# Xk = opt.SX.sym('X0', 3)
-		# w += [Xk]
-		# lbw += [0.0, 0.0, 0.0]
-		# ubw += [0.01, 0.01, 0.01 ]
-
-		Uk = opt.SX.sym('U0', 2)
-		w += [Uk]
-		lbw += [0,0]
-		ubw += [0,0 ]			
 
 		sum_x = 0
 		sum_y = 0
@@ -413,22 +375,6 @@ class OptimizationHMPC(object):
 			w   += [Uk]
 			lbw += [params_position['lbv'], params_orientation['lbO']]
 			ubw += [params_position['ubv'], params_orientation['ubO']]
-
-			# Integrate till the end of the interval
-			# Fk = F(x0=Xk, u=Uk)
-			# Xk_end = Fk['xf']
-			# J=J+Fk['qf']
-
-			# New NLP variable for state at end of interval
-			# Xk   = opt.SX.sym('X_' + str(i+1), 3)
-			# w   += [Xk]
-			# lbw += [-opt.inf, -opt.inf, -opt.inf]
-			# ubw += [ opt.inf,  opt.inf,  opt.inf]
-
-			# Add equality constraint
-			# g   += [Xk_end-Xk]
-			# lbg += [0, 0, 0]
-			# ubg += [0.01, 0.01, 0.01]		
 
 			#Orientation cost function
 			sum_Omega += T*omega_i
@@ -466,7 +412,7 @@ class OptimizationHMPC(object):
 			# lbg.append( params_orientation['delta_min'] )
 			# ubg.append( params_orientation['delta_max'] )
 
-			#J += ( 0.5*params_position['alpha_v']*v_i**2 ) + ( 0.5*params_orientation['alpha_w']*omega_i**2 )  
+			J += ( 0.5*params_position['alpha_v']*v_i**2 ) + ( 0.5*params_orientation['alpha_w']*omega_i**2 )  
 			
 			# Obstacle´s constraints
 			# if(is_obstacle):
