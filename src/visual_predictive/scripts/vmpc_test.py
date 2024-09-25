@@ -2,12 +2,12 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import mpc_ddr.utils.Robot as Robot
-from mpc_ddr.mpc.nmpc import Pose
 import matplotlib.patches as mpatches
 from VisualControlPython.CameraModels.PlanarCamera import PlanarCamera
-from VisualControlPython.homography import (homogToRt,H_from_points,Rodrigues,yaw_angle_from_rotationMatrix,H_from_points_opencv)
+from VisualControlPython.homography import (homogToRt,H_from_points,yaw_angle_from_rotationMatrix,H_from_points_opencv)
 from mpc_ddr.mpc.nmpc import OptimizationHMPC
 from mpc_ddr.params.params import orientation_params, position_params, vision_parameters
+
 #from matplotlib import rc
 #rc('text', usetex=True)
 # plt.rcParams.update({'font.size': 12})
@@ -136,7 +136,7 @@ params_position = position_params()
 
 dt = 0.1
 t0 = 0
-tf = 20
+tf = 50
 times = np.arange(t0,tf,dt)
 trajectory = np.zeros(( 5, len(times) )) 
 
@@ -153,11 +153,11 @@ w_points = get_3D_target_points(n_points,xmin,ymin,ymax,zmin,zmax).transpose()
 
 # Set the camera target position
 angle_fixed  = 90.0
-theta_target = 30.0
+theta_target = 45.0
 
 # Target position
 target_x     = 4.0
-target_y     = 2.0
+target_y     = 4.0
 target_z     = 1.0
 target_roll  = np.deg2rad(0) # Degrees to radians 'x'
 target_pitch = np.deg2rad(angle_fixed - theta_target) # Degrees to radians 'y'
@@ -180,11 +180,11 @@ camera2 = PlanarCamera() # Set the init camera
 camera2.set_position(init_x_pos, init_y_pos, init_z_pos, init_roll, init_pitch, init_yaw)
 p2 = camera2.projection(w_points, n_points)
 
-pixelCoordsArray  = np.zeros((2*n_points,len(times)))   # List to save points positions on the image
-averageErrorArray = np.zeros(len(times))               # Matrix to save error points positions
-z_camera_Array    = np.zeros(len(times)) 
+pixelCoordsArray         = np.zeros((2*n_points,len(times)))   # List to save points positions on the image
+averageErrorArray        = np.zeros(len(times))               # Matrix to save error points positions
+z_camera_Array           = np.zeros(len(times)) 
+h_values_array           = np.zeros( (6,len(times)) )
 h_predicted_values_array = np.zeros((6,len(times)))
-h_values_array = np.zeros( (6,len(times)) )
 
 x_pos = init_x_pos
 y_pos = init_y_pos
@@ -247,7 +247,7 @@ for j in range(len(times)):
 
    x_pos = x[0, 0]
    y_pos = x[1, 0]
-   pitch = np.deg2rad(angle_fixed ) - yaw_angle_k
+   pitch = np.deg2rad(angle_fixed ) - theta_k_w
 
    camera2.set_position(x_pos, y_pos, z_pos, roll, pitch, yaw)
    p2 = camera2.projection(w_points, n_points)
