@@ -152,6 +152,5 @@ def yaw_angle_from_rotationMatrix(rotation_matrix):
     return np.arctan(rotation_matrix[0, 2] / rotation_matrix[0, 0])
 
 def H_from_points_opencv(fp,tp):
-    print(fp.shape)
     H, status = cv2.findHomography(fp.transpose(), tp.transpose())
     return H / H[1,1]

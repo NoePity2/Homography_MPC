@@ -136,7 +136,7 @@ params_position = position_params()
 
 dt = 0.1
 t0 = 0
-tf = 50
+tf = 10
 times = np.arange(t0,tf,dt)
 trajectory = np.zeros(( 5, len(times) )) 
 
@@ -248,6 +248,7 @@ for j in range(len(times)):
    x_pos = x[0, 0]
    y_pos = x[1, 0]
    pitch = np.deg2rad(angle_fixed ) - theta_k_w
+   print("theta_w: ", theta_k_w*180/np.pi)
 
    camera2.set_position(x_pos, y_pos, z_pos, roll, pitch, yaw)
    p2 = camera2.projection(w_points, n_points)
