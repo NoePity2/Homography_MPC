@@ -358,8 +358,7 @@ class OptimizationHMPC(object):
 
 		#Orientation references
 
-		ang_ref = np.min([phi,3*0.01745])
-		Theta_ref = self.get_thetas_ref(ang_ref)
+		Theta_ref = self.get_thetas_ref(phi)
 
 		sum_x = 0
 		sum_y = 0

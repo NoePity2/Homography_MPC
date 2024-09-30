@@ -39,8 +39,8 @@ class VMPCPython():
       self.ck_t_ct_vector = ck_t_ct_vector
       self.phi            = phi
       self.homo_matrix    = He
-      self.PHI_TARGET     = phi_target*np.pi/180
-      self.phi_k          = self.PHI_TARGET - yaw_init
+      #self.PHI_TARGET     = phi_target*np.pi/180
+
 
       #Velocities (Controls)
       self.angular_velocity = 0.0
@@ -127,7 +127,7 @@ def get_3D_target_points(n_points,xmin,ymin,ymax,zmin,zmax):
 #-----------------------------------------------------------------------------------------------------------
 
 #============================================ Parameters ===================================================
-N = 5 # number of control intervals
+N = 10 # number of control intervals
 theta_k_w = 0.0
 # ============== Linear parameters ==============
 x     = np.array( [ [0],[0],[np.deg2rad(theta_k_w)]] )
@@ -136,7 +136,7 @@ params_position = position_params()
 
 dt = 0.1
 t0 = 0
-tf = 10
+tf = 25
 times = np.arange(t0,tf,dt)
 trajectory = np.zeros(( 5, len(times) )) 
 
@@ -144,20 +144,20 @@ trajectory = np.zeros(( 5, len(times) ))
 #Create the world points
 n_points = 40
 
-xmin = 5.5 
-ymin = 3.0
-ymax = 9.0
-zmin = -1
-zmax = 6
+xmin = 6.5 
+ymin = 0.0
+ymax = 6.0
+zmin = -3
+zmax = 3
 w_points = get_3D_target_points(n_points,xmin,ymin,ymax,zmin,zmax).transpose()
 
 # Set the camera target position
 angle_fixed  = 90.0
-theta_target = 45.0
+theta_target = 30.0
 
 # Target position
 target_x     = 4.0
-target_y     = 4.0
+target_y     = 2.31
 target_z     = 1.0
 target_roll  = np.deg2rad(0) # Degrees to radians 'x'
 target_pitch = np.deg2rad(angle_fixed - theta_target) # Degrees to radians 'y'
@@ -178,6 +178,7 @@ init_yaw   = np.deg2rad(0)
 
 camera2 = PlanarCamera() # Set the init camera
 camera2.set_position(init_x_pos, init_y_pos, init_z_pos, init_roll, init_pitch, init_yaw)
+camera2.set_noise(0.5)
 p2 = camera2.projection(w_points, n_points)
 
 pixelCoordsArray         = np.zeros((2*n_points,len(times)))   # List to save points positions on the image
@@ -271,12 +272,12 @@ for j in range(len(times)):
    #============== Decomposition of the homography matrix ====================
    R,tr,normal,d = homogToRt(He)
    Robot_VMPC.set_ck_t_ct_vector(tr)
-   print("tr: ", tr)
    Robot_VMPC.set_d_value(d)
    Robot_VMPC.set_n_vector(normal)
    #============== Get the yaw angle ===========
-   yaw_angle_k = -yaw_angle_from_rotationMatrix(R)
-   Robot_VMPC.phi_k =  yaw_angle_k
+   phi_k = yaw_angle_from_rotationMatrix(R)
+   print("rotation diference: ", tr)
+   Robot_VMPC.set_phi_value( phi_k)
 
    Robot_VMPC.set_desired_values() #valores deseados de los elementos de la homografia
  
@@ -311,15 +312,15 @@ ax.plot(trajectory[0,:],trajectory[1,:],z_camera_Array) # Plot camera trajectory
 axis_scale      = 0.5
 camera_scale    = 0.09
 camera1.draw_camera(ax, scale=camera_scale, color='red')
-#camera1.draw_frame(ax, scale=axis_scale, c='black')
+camera1.draw_frame(ax, scale=axis_scale, c='black')
 
 camera2.set_position(x_pos, y_pos, z_pos, roll, pitch, yaw)
 camera2.draw_camera(ax, scale=camera_scale, color='cyan')
-#camera2.draw_frame(ax, scale=axis_scale, c='black')
+camera2.draw_frame(ax, scale=axis_scale, c='black')
 
 camera2.set_position(init_x_pos, init_y_pos, init_z_pos, init_roll, init_pitch, init_yaw)
 camera2.draw_camera(ax, scale=camera_scale, color='blue')
-#camera2.draw_frame(ax, scale=axis_scale, c='black')
+camera2.draw_frame(ax, scale=axis_scale, c='black')
 limit_x = 1.0
 limit_y = 1.0
 limit_z = 1.0
@@ -345,10 +346,9 @@ ax.legend([mpatches.Patch(color='red'),
          mpatches.Patch(color='blue')],
          ['Desired', 'Init'], loc=2)
 
-# ax.plot(pixelCoordsArray[0,0:j], pixelCoordsArray[1,0:j])
-# ax.plot(pixelCoordsArray[2,0:j], pixelCoordsArray[3,0:j])
-# ax.plot(pixelCoordsArray[4,0:j], pixelCoordsArray[5,0:j])
-# ax.plot(pixelCoordsArray[6,0:j], pixelCoordsArray[7,0:j])
+for i in range(n_points):
+   ax.plot(pixelCoordsArray[2*i,0:j], pixelCoordsArray[2*i+1,0:j],color='green',linewidth=0.5) 
+
 
 ax = fig.add_subplot(2, 2, 3)
 colors = ['red','green','blue','magenta','cyan','yellow']
