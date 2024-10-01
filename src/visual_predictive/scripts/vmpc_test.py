@@ -144,11 +144,11 @@ trajectory = np.zeros(( 5, len(times) ))
 #Create the world points
 n_points = 40
 
-xmin = 6.5 
-ymin = 0.0
-ymax = 6.0
-zmin = -3
-zmax = 3
+xmin = 9 
+ymin = 1.0
+ymax = 4.0
+zmin = 1
+zmax = 6
 w_points = get_3D_target_points(n_points,xmin,ymin,ymax,zmin,zmax).transpose()
 
 # Set the camera target position
@@ -163,7 +163,12 @@ target_roll  = np.deg2rad(0) # Degrees to radians 'x'
 target_pitch = np.deg2rad(angle_fixed - theta_target) # Degrees to radians 'y'
 target_yaw   = np.deg2rad(0) # Degrees to radians 'z'
 
+#Calibration matrix
+K = np.array([[522.1910329546544,0.0,320.5],
+               [0.0, 522.1910329546544,240.5],
+               [0.,0.,1.]])
 camera1 = PlanarCamera() # Set the camera on the target position
+camera1.set_K(K)
 camera1.set_position(target_x, target_y, target_z, target_roll, target_pitch, target_yaw)
 p1 = camera1.projection(w_points, n_points) # Project the points for camera 1
 
@@ -177,6 +182,7 @@ init_pitch = np.deg2rad(angle_fixed - theta_k_w)
 init_yaw   = np.deg2rad(0)
 
 camera2 = PlanarCamera() # Set the init camera
+camera2.set_K(K)
 camera2.set_position(init_x_pos, init_y_pos, init_z_pos, init_roll, init_pitch, init_yaw)
 camera2.set_noise(0.5)
 p2 = camera2.projection(w_points, n_points)
@@ -197,6 +203,7 @@ roll  = init_roll
 #=============== Cameras matrix ===============
 K1      = camera1.K
 K2      = camera2.K
+print(K2)
 K1_inv  = np.linalg.inv(K1)
 K2_inv  = np.linalg.inv(K2)
 
@@ -305,14 +312,13 @@ fig.suptitle('World setting')
 ax = fig.add_subplot(2, 2, 1, projection='3d')
 # ax = fig.gca(projection='3d')
 ax.plot(w_points[0,:], w_points[1,:], w_points[2,:], 'o')
-
 ax.plot(trajectory[0,:],trajectory[1,:],z_camera_Array) # Plot camera trajectory
 
 
 axis_scale      = 0.5
 camera_scale    = 0.09
 camera1.draw_camera(ax, scale=camera_scale, color='red')
-camera1.draw_frame(ax, scale=axis_scale, c='black')
+#camera1.draw_frame(ax, scale=axis_scale, c='black')
 
 camera2.set_position(x_pos, y_pos, z_pos, roll, pitch, yaw)
 camera2.draw_camera(ax, scale=camera_scale, color='cyan')
@@ -320,7 +326,7 @@ camera2.draw_frame(ax, scale=axis_scale, c='black')
 
 camera2.set_position(init_x_pos, init_y_pos, init_z_pos, init_roll, init_pitch, init_yaw)
 camera2.draw_camera(ax, scale=camera_scale, color='blue')
-camera2.draw_frame(ax, scale=axis_scale, c='black')
+#camera2.draw_frame(ax, scale=axis_scale, c='black')
 limit_x = 1.0
 limit_y = 1.0
 limit_z = 1.0
@@ -338,8 +344,8 @@ p20 = pixelCoordsArray[:,0].reshape((2,n_points), order='F')
 ax.plot(p1[0, :],  p1[1, :], 'o', color='red')
 ax.plot(p20[0, :], p20[1, :], 'o', color='blue')
 
-ax.set_ylim(0, camera1.height)
-ax.set_xlim(0, camera1.width)
+# ax.set_ylim(0, camera1.height)
+# ax.set_xlim(0, camera1.width)
 ax.grid(True)
 
 ax.legend([mpatches.Patch(color='red'),
