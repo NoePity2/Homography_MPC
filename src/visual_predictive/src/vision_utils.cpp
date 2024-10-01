@@ -235,6 +235,7 @@ void EstimateHomography(const cv::Mat &refImg, const cv::Mat &currImg, const Mat
 
     std::vector<cv::KeyPoint> keypointsRef, keypointsCurr;
     cv::Mat descriptorsRef, descriptorsCurr; 
+
     detector->detectAndCompute( refImg, noArray(), keypointsRef, descriptorsRef );
     detector->detectAndCompute( currImg, noArray(), keypointsCurr, descriptorsCurr ); 
 
@@ -272,7 +273,7 @@ void EstimateHomography(const cv::Mat &refImg, const cv::Mat &currImg, const Mat
     //std::cout << "H: " << H << std::endl;
     H = K.inverse()*H*K;
     H = H/H(1,1);
-    //std::cout << "H: " << H << std::endl;
+    std::cout << "H: " << H << std::endl;
 
     // std::stringstream ss;
     // ss << "/home/noe/ddr_ws/src/visual_predictive/src/folder_matches/" << counter << ".jpg";

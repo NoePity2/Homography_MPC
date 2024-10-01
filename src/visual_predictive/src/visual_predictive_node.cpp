@@ -23,16 +23,19 @@ static const std::string REF_IMAGE_NAME = "/home/noe/ddr_ws/src/visual_predictiv
 
 void imageCallback(const sensor_msgs::ImageConstPtr& msg)
 {
-  try
-  {
-    cv::Mat receivedImage = cv_bridge::toCvShare(msg, "bgr8")->image; // Save image in a Mat object
-    currentImage = receivedImage;
-    //cv::imwrite("/home/noe/ddr_ws/src/visual_predictive/src/reference_image_test.jpg",currentImage);
-  }
-  catch (cv_bridge::Exception& e)
-  {
-    ROS_ERROR("Could not convert from '%s' to 'bgr8'.", msg->encoding.c_str());
-  }
+
+  cv_bridge::CvImagePtr cvPtr;
+
+	try
+	{ 
+		cvPtr = cv_bridge::toCvCopy(msg, sensor_msgs::image_encodings::BGR8);
+	}
+	catch (cv_bridge::Exception& e) 
+	{
+		ROS_ERROR("cv_bridge exception: %s", e.what());
+		return;
+	}
+  cvPtr->image.copyTo(currentImage);
 }
 
 geometry_msgs::Twist velocities(float vx, float vy, float w){
@@ -55,9 +58,9 @@ int main(int argc, char **argv)
     int cont2 = 0, tecla;
     bool fin = false;
 
-    K << 1206.8897719532354,         0.0       , 960.5, 
-                 0.0       , 1206.8897719532354, 540.5, 
-                 0.0       ,         0.0       ,   1.0;
+    K << 522.1910329546544,         0.0      , 320.5, 
+         0.0              , 522.1910329546544, 240.5, 
+         0.0              ,         0.0      ,   1.0;
 
 
     refImage = cv::imread(REF_IMAGE_NAME, cv::IMREAD_COLOR);
@@ -109,8 +112,8 @@ int main(int argc, char **argv)
               std::cout << "Could not read the current image: "  << std::endl;
           }
           else{
-              //std::cout << "current image is ready: "  << std::endl;
-              //cv::imwrite("/home/noe/catkin_ws_tutorials/src/pbvs_controller2/src/current_image_1.jpg",currentImage);
+              std::cout << "current image is ready: "  << std::endl;
+              cv::imwrite("/home/noe/ddr_ws/src/visual_predictive/src/current_image.jpg",currentImage);
               EstimateHomography(refImage, currentImage, K, H, counter );
               RecoverFromHomography(H,R,t,n,d, counter, homSolution);
               phi = -YRotationAngleFromRotationMatrix(R);
