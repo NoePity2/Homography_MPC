@@ -163,11 +163,11 @@ class HomographyMPC:
 
 		self.a_row_1 = -np.sin(self.phi) 
 		self.b_row_1 = -np.cos(self.phi) 
-		self.d_row_1 = self.d*(-self.ck_x_ct*np.cos(self.phi) + self.ck_z_ct*np.sin(self.phi))
+		self.d_row_1 = self.d*(-self.ck_x_ct*np.cos(self.phi) + self.ck_z_ct*np.sin(self.phi)) 
 
 		self.a_row_3 = np.cos(self.phi) 
 		self.b_row_3 = -np.sin(self.phi) 
-		self.d_row_3 = self.d*(-self.ck_x_ct*np.sin(self.phi) - self.ck_z_ct*np.cos(self.phi))
+		self.d_row_3 = self.d*(-self.ck_x_ct*np.sin(self.phi) - self.ck_z_ct*np.cos(self.phi))  
 
 
 	def get_predictive_state_values(self,v,omega,state_vector,T):
@@ -326,6 +326,7 @@ class OptimizationHMPC(object):
 		self.h33_predicted = self.Homography33.predicted_value(v,omega,state_vector,T)
 
 	def set_desired_values(self,H_actual):
+		print(H_actual)
 		self.h11_desired_value = self.Homography11.get_expected_value() - (H_actual[0] - self.h11_predicted)
 		self.h12_desired_value = self.Homography12.get_expected_value() - (H_actual[1] - self.h12_predicted)
 		self.h13_desired_value = self.Homography13.get_expected_value() - (H_actual[2] - self.h13_predicted)
@@ -389,10 +390,10 @@ class OptimizationHMPC(object):
 			sum_y += T*np.sin(theta_kn) * v_i
 			y_kn  = y_k + sum_y
 
-			# if(n == [] or ck_t_ct == [] ):
-			# 	n=[1.0,1.0,1.0]
-			# 	ck_t_ct=[0.0,0.0,0.0]
-			# 	d = 1
+			if(n == [] or ck_t_ct == [] ):
+				n=[0.0,0.0,1.0]
+				ck_t_ct=[0.0,0.0,1.0]
+				d = 1
 
 			self.Homography11.set_values(d=d,n=n,ck_t_ct=ck_t_ct,rk_x_rl=x_kn,rk_y_rl=y_kn,c_x_r=c_x_r,c_z_r=c_z_r,theta=theta_kn,phi=phi)
 			self.Homography12.set_values(d=d,n=n,ck_t_ct=ck_t_ct,rk_x_rl=x_kn,rk_y_rl=y_kn,c_x_r=c_x_r,c_z_r=c_z_r,theta=theta_kn,phi=phi)

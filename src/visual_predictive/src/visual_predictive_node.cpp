@@ -89,9 +89,6 @@ int main(int argc, char **argv)
       std::cout <<"No topic name given. The default topic name will be used: " << topicName << std::endl;
     }
 
-    //ros::Publisher  pub = nh.advertise<geometry_msgs::Twist>("/cmd_vel", 1);
-    //vel = velocities(0,0,0);
-    //pub.publish(vel);
     ros::Publisher homography_pub   = nh.advertise<std_msgs::Float64MultiArray>("/homograpy_numerical",100);
     ros::Publisher ck_t_ct_pub      = nh.advertise<std_msgs::Float64MultiArray>("/ck_t_ct",100);
     ros::Publisher n_pub            = nh.advertise<std_msgs::Float64MultiArray>("/n_plane_vector",100);
@@ -116,7 +113,8 @@ int main(int argc, char **argv)
               cv::imwrite("/home/noe/ddr_ws/src/visual_predictive/src/current_image.jpg",currentImage);
               EstimateHomography(refImage, currentImage, K, H, counter );
               RecoverFromHomography(H,R,t,n,d, counter, homSolution);
-              phi = -YRotationAngleFromRotationMatrix(R);
+              phi = YRotationAngleFromRotationMatrix(R);
+              std::cout << "t : " << t << std::endl; 
               std::cout << "phi : " << phi*(180/3.141592) << std::endl; 
               tf::matrixEigenToMsg(H, H_msg);
               tf::matrixEigenToMsg(t, ck_t_ct_msg);

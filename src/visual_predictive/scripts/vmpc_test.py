@@ -127,7 +127,7 @@ def get_3D_target_points(n_points,xmin,ymin,ymax,zmin,zmax):
 #-----------------------------------------------------------------------------------------------------------
 
 #============================================ Parameters ===================================================
-N = 10 # number of control intervals
+N = 5 # number of control intervals
 theta_k_w = 0.0
 # ============== Linear parameters ==============
 x     = np.array( [ [0],[0],[np.deg2rad(theta_k_w)]] )
@@ -136,7 +136,7 @@ params_position = position_params()
 
 dt = 0.1
 t0 = 0
-tf = 25
+tf = 40
 times = np.arange(t0,tf,dt)
 trajectory = np.zeros(( 5, len(times) )) 
 
@@ -153,11 +153,11 @@ w_points = get_3D_target_points(n_points,xmin,ymin,ymax,zmin,zmax).transpose()
 
 # Set the camera target position
 angle_fixed  = 90.0
-theta_target = 30.0
+theta_target = 0.0
 
 # Target position
 target_x     = 4.0
-target_y     = 2.31
+target_y     = 0
 target_z     = 1.0
 target_roll  = np.deg2rad(0) # Degrees to radians 'x'
 target_pitch = np.deg2rad(angle_fixed - theta_target) # Degrees to radians 'y'
@@ -184,7 +184,7 @@ init_yaw   = np.deg2rad(0)
 camera2 = PlanarCamera() # Set the init camera
 camera2.set_K(K)
 camera2.set_position(init_x_pos, init_y_pos, init_z_pos, init_roll, init_pitch, init_yaw)
-camera2.set_noise(0.5)
+camera2.set_noise(0.0)
 p2 = camera2.projection(w_points, n_points)
 
 pixelCoordsArray         = np.zeros((2*n_points,len(times)))   # List to save points positions on the image

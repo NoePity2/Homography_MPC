@@ -267,7 +267,8 @@ void EstimateHomography(const cv::Mat &refImg, const cv::Mat &currImg, const Mat
         currentPoints2f.push_back( keypointsCurr[ goodMatches[i].trainIdx ].pt );
     }
 
-    cv::Mat Hom = findHomography( refPoints2f, currentPoints2f, RANSAC, 1 );
+    cv::Mat Hom = cv::findHomography( currentPoints2f, refPoints2f,  RANSAC, 1 );
+    //cv::Mat Hom = cv::findHomography( refPoints2f, currentPoints2f, RANSAC, 1 );
     cv::cv2eigen(Hom,H);
 
     //std::cout << "H: " << H << std::endl;
