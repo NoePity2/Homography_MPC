@@ -15,7 +15,7 @@ from mpc_ddr.params.params import orientation_params, position_params, vision_pa
 class VMPC():
 
 
-	def __init__(self,params_position=None,params_orientation=None,vision_parameters=None,x_init=0,y_init=0,yaw_init=0,phi_target=0.0,T=0.1,N=5,c_x_r=0.0,c_z_r=-0.1):
+	def __init__(self,params_position=None,params_orientation=None,vision_parameters=None,x_init=0,y_init=0,yaw_init=0,phi_target=0.0,T=0.1,N=5,c_x_r=0.0,c_z_r=-0.27):
 		rospy.init_node('nonlinear_vmpc')
 		rospy.loginfo('Program has started') #Beginning terminal msg
 		rospy.logwarn("To start the movement, the simulation must be running\n\n")
@@ -32,7 +32,7 @@ class VMPC():
 		self.T          = T
 		self.x          = x_init
 		self.y          = y_init
-		self.c_x_r      = c_x_r #Traslation between robot with respecto the camera x-axis
+		self.c_x_r      = c_x_r #Traslation between robot with respec to the camera x-axis
 		self.c_z_r      = c_z_r
 		#self.PHI_TARGET = phi_target*np.pi/180
 		#self.phi_k      = self.PHI_TARGET - yaw_init
@@ -152,7 +152,7 @@ class VMPC():
 
 
 			#print(f"Homo current: = {self.homo_matrix.data}")
-			#print("Homo predicted = ", self.predicted_values)
+			print("Homo predicted = ", self.predicted_values)
 			#self.x_k   = np.array( [[self.x],[self.y]] )
 			# self.get_tracking_errors()
 			self.t = rospy.Time.now().to_sec()-self.t0 #Compute the controller time 
