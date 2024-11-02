@@ -268,7 +268,6 @@ void EstimateHomography(const cv::Mat &refImg, const cv::Mat &currImg, const Mat
     }
 
     cv::Mat Hom = cv::findHomography( currentPoints2f, refPoints2f,  RANSAC, 1 );
-    //cv::Mat Hom = cv::findHomography( refPoints2f, currentPoints2f, RANSAC, 1 );
     cv::cv2eigen(Hom,H);
 
     //std::cout << "H: " << H << std::endl;
@@ -276,16 +275,16 @@ void EstimateHomography(const cv::Mat &refImg, const cv::Mat &currImg, const Mat
     H = H/H(1,1);
     std::cout << "H: " << H << std::endl;
 
-    // std::stringstream ss;
-    // ss << "/home/noe/ddr_ws/src/visual_predictive/src/folder_matches/" << counter << ".jpg";
+    std::stringstream ss;
+    ss << "/home/noe/ddr_ws/src/visual_predictive/src/folder_matches/" << counter << ".jpg";
 
     // cv::Mat out;
     // cv::drawMatches(refImg, keypointsRef, currImg, keypointsCurr, goodMatches, out);
     // cv::imwrite(ss.str(),out);
 
-    // cv::Mat out;
-    // cv::drawKeypoints(currImg, keypointsCurr, out, cv::Scalar::all(-1), cv::DrawMatchesFlags::DEFAULT);
-    // cv::imwrite("/home/noe/catkin_ws_tutorials/src/pbvs_controller2/src/reference_image_keypoints.jpg",out);
+    cv::Mat out;
+    cv::drawKeypoints(currImg, keypointsCurr, out, cv::Scalar(255,0,0), cv::DrawMatchesFlags::DEFAULT);
+    cv::imwrite(ss.str(),out);
 
     //std::cout <<"End of the EstimateHomography function... " << std::endl;
 

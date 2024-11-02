@@ -348,6 +348,8 @@ class OptimizationHMPC(object):
 		y_k     = float(state_vector[1])
 		theta_k = float(state_vector[2])
 
+		v_prev  = opt.SX.sym('v_prev')
+
 		# Start with an empty NLP
 		w   = []
 		lbw = []
@@ -415,6 +417,15 @@ class OptimizationHMPC(object):
 			# ubg.append( params_orientation['delta_max'] )
 
 			J += ( 0.5*params_position['alpha_v']*v_i**2 ) + ( 0.5*params_orientation['alpha_w']*omega_i**2 )  
+						# Delta between subsequent time steps
+			if i == 0:
+				delta_v = v_i
+			else:
+				delta_v = v_i - v_prev
+
+			v_prev = v_i
+			J+= 0.9*delta_v**2
+
 			
 			# Obstacle´s constraints
 			# if(is_obstacle):
