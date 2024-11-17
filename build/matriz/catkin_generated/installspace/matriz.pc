@@ -1,8 +1,0 @@
-prefix=/home/noe/ddr_ws/install
-
-Name: matriz
-Description: Description of matriz
-Version: 0.0.0
-Cflags: 
-Libs: -L${prefix}/lib -lmatriz
-Requires: roscpp rospy std_msgs
