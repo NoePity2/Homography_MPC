@@ -301,18 +301,18 @@ class OptimizationHMPC(object):
 		self.Homography31 = Homography31()
 		self.Homography32 = Homography32()
 		self.Homography33 = Homography33()
-		self.h11_desired_value = [0.0]
+		self.h11_desired_value = [1.0]
 		self.h12_desired_value = [0.0]
 		self.h13_desired_value = [0.0]
 		self.h31_desired_value = [0.0]
 		self.h32_desired_value = [0.0]
-		self.h33_desired_value = [0.0]
-		self.h11_predicted = 0.0
+		self.h33_desired_value = [1.0]
+		self.h11_predicted = 1.0
 		self.h12_predicted = 0.0
 		self.h13_predicted = 0.0
 		self.h31_predicted = 0.0
 		self.h32_predicted = 0.0
-		self.h33_predicted = 0.0
+		self.h33_predicted = 1.0
 		self.V_opt = 0.0
 		self.Omega_opt = 0.0
 
@@ -343,7 +343,7 @@ class OptimizationHMPC(object):
 		N      = self.N
 		T      = self.T
 		
-		# #Init the state vector to zero due to the optimización is local at robot frame.
+		# #Init the state vector to zero due to the optimization is local at robot frame.
 		x_k     = float(state_vector[0])
 		y_k     = float(state_vector[1])
 		theta_k = float(state_vector[2])
