@@ -1,8 +1,0 @@
-prefix=/home/noe/ddr_ws/devel
-
-Name: robot_ddr
-Description: Description of robot_ddr
-Version: 0.0.0
-Cflags: 
-Libs: -L${prefix}/lib 
-Requires: rospy std_msgs geometry_msgs nav_msgs

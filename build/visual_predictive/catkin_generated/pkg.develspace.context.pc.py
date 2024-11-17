@@ -1,8 +1,0 @@
-# generated from catkin/cmake/template/pkg.context.pc.in
-CATKIN_PACKAGE_PREFIX = ""
-PROJECT_PKG_CONFIG_INCLUDE_DIRS = "/home/noe/ddr_ws/src/visual_predictive/include".split(';') if "/home/noe/ddr_ws/src/visual_predictive/include" != "" else []
-PROJECT_CATKIN_DEPENDS = "roscpp;rospy;std_msgs;tf;geometry_msgs;nav_msgs;cv_bridge;image_transport;visp_ros".replace(';', ' ')
-PKG_CONFIG_LIBRARIES_WITH_PREFIX = "".split(';') if "" != "" else []
-PROJECT_NAME = "visual_predictive"
-PROJECT_SPACE_DIR = "/home/noe/ddr_ws/devel"
-PROJECT_VERSION = "0.0.0"

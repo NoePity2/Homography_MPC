@@ -1,8 +1,0 @@
-prefix=/home/noe/ddr_ws/devel
-
-Name: visual_predictive
-Description: Description of visual_predictive
-Version: 0.0.0
-Cflags: -I/home/noe/ddr_ws/src/visual_predictive/include
-Libs: -L${prefix}/lib 
-Requires: roscpp rospy std_msgs tf geometry_msgs nav_msgs cv_bridge image_transport visp_ros
