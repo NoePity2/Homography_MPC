@@ -9,6 +9,10 @@ debian/
 # Prerequisites
 *.d
 
+# Ignorar carpetas generadas por catkin_make
+build/
+devel/
+
 # Compiled Object files
 *.slo
 *.lo
@@ -830,3 +834,4 @@ src/ros_astra_camera
 src/turtlebot3_simulations
 src/visual_predictive/scripts/mpc_ddr/mpc/__pycache__/nmpc.cpython-39.pyc
 src/visual_predictive/scripts/mpc_ddr/params/__pycache__/params.cpython-39.pyc
+src/visual_predictive/src/folder_matches/1.jpg
