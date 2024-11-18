@@ -74,7 +74,7 @@ def orientation_params_simulations():
 
 def position_params_simulations():
 
-	alpha1 = 1e-2
+	alpha1 = 1e-3
 	lbv    = -0.26 # lower velocity constraint
 	ubv    = 0.26 # upper velocity constraint
 
