@@ -100,7 +100,7 @@ class VMPCPython():
       return np.array(self.predicted_values)
    
 
-
+# This function gives a set of points in the world.
 def get_3D_target_points(n_points,xmin,ymin,ymax,zmin,zmax):
 
     w_points = []
@@ -111,3 +111,18 @@ def get_3D_target_points(n_points,xmin,ymin,ymax,zmin,zmax):
         w_points.append([xx, yy, zz])
 
     return np.asarray(w_points)
+
+
+# This is a saturation function.
+def sigma(s, L, M):
+
+    c = np.pi / (2 * (M - L))
+    
+    if s > L:
+        return (1/c) * np.tanh(c * (s - L)) + L
+    elif s < -L:
+        return -(1/c) * np.tanh(c * (-s - L)) - L
+    else:
+        return s
+     
+

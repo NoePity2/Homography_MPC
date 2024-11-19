@@ -424,7 +424,7 @@ class OptimizationHMPC(object):
 				delta_v = v_i - v_prev
 
 			v_prev = v_i
-			J+= 0.9*delta_v**2
+			J+= 1.2*delta_v**2
 
 			
 			# Obstacle´s constraints
