@@ -25,7 +25,7 @@ x_new = np.array( [ [0],[0],[np.deg2rad(theta_k_w)]] )
 
 dt = 0.1
 t0 = 0
-tf = 80
+tf = 90
 times = np.arange(t0,tf,dt)
 trajectory = np.zeros(( 5, len(times) ))
 
@@ -43,6 +43,7 @@ w_points = get_3D_target_points(n_points,xmin,ymin,ymax,zmin,zmax).transpose()
 # Set the camera target position
 angle_fixed  = 90.0
 theta_target = 0.0
+pico_time = 0
 
 # Target position of camera 1
 target_x     = 3.0
@@ -61,14 +62,14 @@ target_pitch2 = np.deg2rad(angle_fixed- theta_target) # Degrees to radians 'y'
 target_yaw2   = np.deg2rad(0) # Degrees to radians 'z'
 
 # Target position of camera 3 
-target_x3     = 9.0
+target_x3     = 10.0
 target_y3     = 0.0
 target_z3     = 1.0
 target_roll3  = np.deg2rad(0) # Degrees to radians 'x'
 target_pitch3 = np.deg2rad(angle_fixed- theta_target) # Degrees to radians 'y'
 target_yaw3   = np.deg2rad(0) # Degrees to radians 'z'
 
-#Calibration matrix
+#Calibration matrix  
 K = np.array([[522.1910329546544,0.0,320.5],
                [0.0, 522.1910329546544,240.5],
                [0.,0.,1.]])
@@ -152,6 +153,7 @@ M = 0.26
 #================================================== VMPC ===================================================
 p_t = p1
 task = 1
+
 #============= Simulation ============
 for j in range(len(times)):
 
@@ -175,10 +177,15 @@ for j in range(len(times)):
    #Saturation function
    if (task < 3):
       #u[0] = sigma(u[0], L, M)
-      u[0] = sat_smooth_exp(u[0], 0.25, M)
+      u[0] = sat_smooth_exp(u[0], 0.259, M)
+      #u[1] = sat_smooth_exp(u[1], 0.7, M) 
    else:
-      u[0] = sigma(u[0], 0, M)
-
+      if (pico_time > 2):
+         u[0] = sigma(u[0]*2, 0.259, M)
+      else:
+         u[0] = M
+         pico_time = pico_time + 1
+         
 
    x = Robot.robot_ddr(x_new,u,dt)
    print( "x = ", x )
