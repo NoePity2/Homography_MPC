@@ -8,7 +8,6 @@ from math import sin, cos, pi
 import numpy as np
 import casadi as opt
 from std_msgs.msg import Float64MultiArray, Float64
-from hmpc_utils import sigma
 from mpc_ddr.mpc.nmpc import OptimizationHMPC, Homography11,Homography12,Homography13,Homography31,Homography32, Homography33
 from mpc_ddr.params.params import orientation_params, position_params, vision_parameters
 
@@ -46,10 +45,6 @@ class VMPC():
 		self.params_orientation = params_orientation
 		self.vision_parameters  = vision_parameters
 
-		M = 0.26
-		pico_time = 0
-		self.task = 0 
-
 		#States
 		#self.yaw = yaw_init*np.pi/180
 		#self.x_k = np.array( [[x_init],[y_init]] )
@@ -66,9 +61,8 @@ class VMPC():
 		self.n_plane__sub   = rospy.Subscriber("/n_plane_vector", Float64MultiArray,self.n_vector_callback)
 		self.d_value_sub    = rospy.Subscriber("/d_value",Float64,self.d_value_callback)
 		self.phi_sub        = rospy.Subscriber("/phi",Float64,self.phi_value_callback)
-		self.task_sub		= rospy.Subscriber("/n_task",Float64,self.task_value_callback)
-
-		self.homo_matrix    = Float64MultiArray()
+		
+		self.homo_matrix    = Float64MultiArray() ##que hace
 		self.ck_t_ct_vector = Float64MultiArray()
 		self.n_vector       = Float64MultiArray()
 		self.d_value        = Float64()
@@ -95,28 +89,11 @@ class VMPC():
 
 		file_obj = open("data_py.txt","w+") #If only the filename is given
 		
-		self.t = rospy.Time.now().to_sec()-self.t0 #Compute the controller time
-
+		self.t = rospy.Time.now().to_sec()-self.t0 #Compute the controller time 
 		while not rospy.is_shutdown():
 			print("Computing optimal controls ...")
 			self.vel_ops() #Compute the control signals
 			print("phi = ", np.rad2deg(self.phi.data))
-
-			if self.task < 2:
-				self.V_k[0] = sat_smooth_exp(self.V_k[0], 0.24, M)
-			else:
-				if (pico_time > 2):
-					# Mezclar suavemente las funciones para evitar discontinuidad
-					self.V_k[0] = sigma(self.V_k[0]*2, 0.25, M)
-				else:
-					self.V_k[0] = M
-					pico_time = pico_time + 1
-				
-				if(abs(self.homo_matrix.data[0])>0.99 and abs(self.homo_matrix.data[1])<0.03 and abs(self.homo_matrix.data[2])<0.03 and abs(self.homo_matrix.data[6])<0.03 and abs(self.homo_matrix.data[7])<0.03 and abs(self.homo_matrix.data[8])>0.95):
-					self.vel_msg.linear.x = 0.0; self.vel_msg.angular.z = 0.0
-					self.vel_pub.publish(self.vel_msg)
-					self.ctrl_c = True 
-
 			self.vel_msg.linear.x  = self.V_k[0]
 			print('self.V_k[0] = ',self.V_k[0])
 			V = float(self.V_k[0])
@@ -128,6 +105,10 @@ class VMPC():
 			if(self.homo_matrix.data == [] or self.phi.data == [] or self.ck_t_ct_vector.data==[] or self.n_vector.data==[] or self.d_value.data==[]):
 				continue
 			
+			if(abs(self.homo_matrix.data[0])>0.99 and abs(self.homo_matrix.data[1])<0.01 and abs(self.homo_matrix.data[2])<0.01 and abs(self.homo_matrix.data[6])<0.01 and abs(self.homo_matrix.data[7])<0.01 and abs(self.homo_matrix.data[8])>0.99):
+				self.vel_msg.linear.x = 0.0; self.vel_msg.angular.z = 0.0
+				self.vel_pub.publish(self.vel_msg)
+				self.ctrl_c = True
 			#==================== LogCurrentResults =========================#
 
 			#Convertion from float to string (to write in a file)
@@ -192,8 +173,10 @@ class VMPC():
 
 	def get_tracking_errors(self):
 		self.ex    = self.x - self.X_ref[0]
-		self.ey    = self.y - self.Y_ref[0]
+		self.ey    = self.y - self.Y_ref[0] 
 		self.e_yaw = self.yaw - self.Yaw_ref[0]
+		#para obtener dicha informacion del error falta obtener X_ref, Y_ref y Yaw_ref
+		#De donde se obtiene dicha informacion
 
 
 	def vel_ops(self):
@@ -203,11 +186,8 @@ class VMPC():
 		self.V_k = self.HMPC.get_Vopt_solution()
 		self.predicted_values = self.HMPC.get_predicted_values()
 
-	def task_value_callback(self,msg):
-		self.task = msg.data
-	
 	def homograpy_callback(self,msg):
-		self.homo_matrix = msg	
+		self.homo_matrix = msg
 
 	def ck_t_ct_vector_callback(self, msg):
 		self.ck_t_ct_vector = msg
@@ -262,9 +242,6 @@ class VMPC():
 	def get_rk_theta_rk1(self):
 		return self.HMPC.get_rk_theta_rk1(self.angular_velocity[0],self.x_k)
 
-def sat_smooth_exp(x, L_min, M):
-	return L_min + (M - L_min) * np.exp(-x)
-
 
 
 
@@ -277,4 +254,3 @@ if __name__ == '__main__':
 		VMPC(params_position=params_position,params_orientation=params_orientation,vision_parameters=vision_parameters,phi_target=PHI_TARGET)
 	except rospy.ROSInterruptException:
 		pass
-
