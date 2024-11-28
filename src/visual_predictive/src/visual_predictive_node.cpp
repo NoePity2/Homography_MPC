@@ -18,46 +18,25 @@
 cv::Mat refImage, currentImage;
 geometry_msgs::Twist vel;     //Crea objeto "vel" para mensajes tipo "geometry_msgs/Twist"
 double t0,t;
-int task;
 
-std::vector<cv::Mat> readSequentialImages(const std::string& directory) {
-    std::vector<cv::Mat> images;
-    int index = 0;
-    
-    while (true) {
-        std::string filename = directory + "/reference_image" + std::to_string(index) + ".jpg";
-        cv::Mat img = cv::imread(filename, cv::IMREAD_COLOR);
-        if (img.empty()) {
-            break;  // No more images to read
-        }
-        images.push_back(img);
-        index++;
-    }
-
-    if (images.empty()) {
-        std::cerr << "No se encontraron imágenes en el directorio " << directory << std::endl;
-    }
-
-    return images;
-}
+static const std::string REF_IMAGE_NAME = "/home/noe/ddr_ws/src/visual_predictive/src/reference_image.jpg";
 
 void imageCallback(const sensor_msgs::ImageConstPtr& msg)
 {
-    cv_bridge::CvImagePtr cvPtr;
-    try
-    { 
-        cvPtr = cv_bridge::toCvCopy(msg, sensor_msgs::image_encodings::BGR8);
-        cvPtr->image.copyTo(currentImage);
-        if (currentImage.empty()) {
-            ROS_ERROR("Received empty image");
-        }
-    }
-    catch (cv_bridge::Exception& e) 
-    {
-        ROS_ERROR("cv_bridge exception: %s", e.what());
-    }
-}
 
+  cv_bridge::CvImagePtr cvPtr;
+
+	try
+	{ 
+		cvPtr = cv_bridge::toCvCopy(msg, sensor_msgs::image_encodings::BGR8);
+	}
+	catch (cv_bridge::Exception& e) 
+	{
+		ROS_ERROR("cv_bridge exception: %s", e.what());
+		return;
+	}
+  cvPtr->image.copyTo(currentImage);
+}
 
 geometry_msgs::Twist velocities(float vx, float vy, float w){
   vel.linear.x  = vx;
@@ -78,29 +57,21 @@ int main(int argc, char **argv)
     int counter = 0;
     int cont2 = 0, tecla;
     bool fin = false;
-    std::vector<cv::Mat> desiredImages;
 
     K << 522.1910329546544,         0.0      , 320.5, 
          0.0              , 522.1910329546544, 240.5, 
          0.0              ,         0.0      ,   1.0;
 
 
-    // Leer todas las imágenes secuenciales del directorio de referencia
-    std::string REF_IMAGE_NAME = "/home/erandi/Documents/trabajo/Homography_MPC-master/src/visual_predictive/src/images_reference/";
-    desiredImages = readSequentialImages(REF_IMAGE_NAME);
-
-    if (desiredImages.empty()) {
-        std::cerr << "No se pudieron leer las imágenes de referencia" << std::endl;
+    refImage = cv::imread(REF_IMAGE_NAME, cv::IMREAD_COLOR);
+    if(refImage.empty())
+    {
+        std::cout << "Could not read the image: " << REF_IMAGE_NAME << std::endl;
         return 1;
     }
     else{
         std::cout << "Ref image is ready: " << REF_IMAGE_NAME << std::endl;
     }
-
-    task = 0;
-    // Asignar la primera imagen del vector a refImage
-    refImage = desiredImages[task];
-
 
     ros::init(argc, argv, "visual_predictive_node");
     ros::NodeHandle nh;
@@ -123,13 +94,7 @@ int main(int argc, char **argv)
     ros::Publisher n_pub            = nh.advertise<std_msgs::Float64MultiArray>("/n_plane_vector",100);
     ros::Publisher d_pub            = nh.advertise<std_msgs::Float64>("/d_value",100);
     ros::Publisher phi_pub          = nh.advertise<std_msgs::Float64>("/phi",100);
-    ros::Publisher task_pub         = nh.advertise<std_msgs::Float64>("/n_task",100);
     image_transport::Subscriber sub = it.subscribe(topicName, 1, imageCallback);
-    
-
-    std_msgs::Float64 task_msg;
-
-    //se necesita suscribirse al topico del error para hacer cambio de imagen de referencia
 
     //ros::spin();
     ros::Rate loop_rate(10); //Se ejecuta 100 por segundo
@@ -144,9 +109,8 @@ int main(int argc, char **argv)
               std::cout << "Could not read the current image: "  << std::endl;
           }
           else{
-              task_msg.data = task;
               std::cout << "current image is ready: "  << std::endl;
-              cv::imwrite("/home/erandi/Documents/trabajo/Homography_MPC-master/src/visual_predictive/src/current_image.jpg",currentImage);
+              cv::imwrite("/home/noe/ddr_ws/src/visual_predictive/src/current_image.jpg",currentImage);
               EstimateHomography(refImage, currentImage, K, H, counter );
               RecoverFromHomography(H,R,t,n,d, counter, homSolution);
               phi = YRotationAngleFromRotationMatrix(R);
@@ -162,12 +126,7 @@ int main(int argc, char **argv)
               d_pub.publish(d_msg);
               phi_msg.data = phi;
               phi_pub.publish(phi_msg);
-              if (abs(H(0, 0)) > 0.99 && abs(H(0, 1)) < 0.02 && abs(H(0, 2)) < 0.02 && abs(H(2, 0)) < 0.02 && abs(H(2, 1)) < 0.02 && abs(H(2, 2)) > 0.95){
-                task = task + 1;
-                refImage = desiredImages[task];
-              }
 
-              task_pub.publish(task_msg);
           }
           counter++;
           ros::spinOnce();   //Activa callbacks
@@ -178,6 +137,10 @@ int main(int argc, char **argv)
     //vel = velocities(0,0,0);
     //pub.publish(vel);
 
+
+    //cv::destroyWindow("Video Stream");
+    return 0;
+}
 
     //cv::destroyWindow("Video Stream");
     return 0;
