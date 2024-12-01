@@ -163,7 +163,7 @@ int main(int argc, char **argv)
               phi_msg.data = phi;
               phi_pub.publish(phi_msg);
               if (abs(H(0, 0)) > 0.99 && abs(H(0, 1)) < 0.06 && abs(H(0, 2)) < 0.05 &&
-              abs(H(2, 0)) < 0.05 && abs(H(2, 1)) < 0.05 && abs(H(2, 2)) > 0.95){
+              abs(H(2, 0)) < 0.05 && abs(H(2, 1)) < 0.05 && abs(H(2, 2)) > 0.99){
                 task = task + 1;
                 refImage = desiredImages[task];
               }
