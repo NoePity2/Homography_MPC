@@ -1,6 +1,8 @@
 #include "utils.h"
 #include "vision_utils.h"
 #include <Eigen/Dense>
+#include <visp3/vision/vpHomography.h>
+#include <visp3/core/vpEigenConversion.h>
 
 #include <ros/ros.h>
 #include "geometry_msgs/Twist.h"
@@ -13,12 +15,14 @@
 
 #include <std_msgs/Float64MultiArray.h>
 #include <std_msgs/Float64.h>
+#include <std_msgs/Int32.h>
 #include <eigen_conversions/eigen_msg.h>
 
 cv::Mat refImage, currentImage;
 geometry_msgs::Twist vel;     //Crea objeto "vel" para mensajes tipo "geometry_msgs/Twist"
 double t0,t;
 int task;
+int Nreferences;
 
 std::vector<cv::Mat> readSequentialImages(const std::string& directory) {
     std::vector<cv::Mat> images;
@@ -37,6 +41,8 @@ std::vector<cv::Mat> readSequentialImages(const std::string& directory) {
     if (images.empty()) {
         std::cerr << "No se encontraron imágenes en el directorio " << directory << std::endl;
     }
+    std::cout << "No ref images: " << images.size() << std::endl;
+    Nreferences = images.size();
 
     return images;
 }
@@ -69,7 +75,9 @@ geometry_msgs::Twist velocities(float vx, float vy, float w){
 int main(int argc, char **argv)
 {
     Matrix_t K(3,3); //Calibration of the camera matrix
-    Matrix_t H(3,3); // Homography matrix
+    //Matrix_t H(3,3); // Homography matrix
+    Matrix_t H_e(3,3);
+    vpHomography H; //Homography matrix for visp
     Matrix_t R(3,3); // Rotation between current frame and the reference frame
     Vector3D_t t;    // Translation between current frame and the reference frame
     Vector3D_t n;    // normal vector in the reference plane
@@ -86,7 +94,7 @@ int main(int argc, char **argv)
 
 
     // Leer todas las imágenes secuenciales del directorio de referencia
-    std::string REF_IMAGE_NAME = "/home/erandi/Documents/trabajo/Homography_MPC-master/src/visual_predictive/src/images_reference/";
+    std::string REF_IMAGE_NAME = "/home/axel/Homography_MPC/src/visual_predictive/src/images_reference/";
     desiredImages = readSequentialImages(REF_IMAGE_NAME);
 
     if (desiredImages.empty()) {
@@ -102,7 +110,7 @@ int main(int argc, char **argv)
     refImage = desiredImages[task];
 
 
-    ros::init(argc, argv, "visual_predictive_node");
+    ros::init(argc, argv, "visual_path_following_node");
     ros::NodeHandle nh;
 
     cv::startWindowThread();
@@ -123,11 +131,13 @@ int main(int argc, char **argv)
     ros::Publisher n_pub            = nh.advertise<std_msgs::Float64MultiArray>("/n_plane_vector",100);
     ros::Publisher d_pub            = nh.advertise<std_msgs::Float64>("/d_value",100);
     ros::Publisher phi_pub          = nh.advertise<std_msgs::Float64>("/phi",100);
-    ros::Publisher task_pub         = nh.advertise<std_msgs::Float64>("/n_task",100);
+    ros::Publisher task_pub         = nh.advertise<std_msgs::Int32>("/n_task",100);
+    ros::Publisher Nreferences_pub  = nh.advertise<std_msgs::Int32>("/n_references",100);
     image_transport::Subscriber sub = it.subscribe(topicName, 1, imageCallback);
     
 
-    std_msgs::Float64 task_msg;
+    std_msgs::Int32 task_msg;
+    std_msgs::Int32 Nreferences_msg;
 
     //se necesita suscribirse al topico del error para hacer cambio de imagen de referencia
 
@@ -145,14 +155,23 @@ int main(int argc, char **argv)
           }
           else{
               task_msg.data = task;
+              Nreferences_msg.data = Nreferences;
               std::cout << "current image is ready: "  << std::endl;
-              cv::imwrite("/home/erandi/Documents/trabajo/Homography_MPC-master/src/visual_predictive/src/current_image.jpg",currentImage);
-              EstimateHomography(refImage, currentImage, K, H, counter );
-              RecoverFromHomography(H,R,t,n,d, counter, homSolution);
+              cv::imwrite("/home/axel/Homography_MPC/src/visual_predictive/src/current_image.jpg",currentImage);
+
+            //------- Estimate the homography ----------------------//
+              //EstimateHomography(refImage, currentImage, K, H_e, counter );
+              EstimateHomographyVisp(refImage, currentImage, K, H, counter);
+              vp::visp2eigen(H, H_e);
+
+              std::cout << H << '\n' << H_e << std::endl;
+
+              RecoverFromHomography(H_e,R,t,n,d, counter, homSolution);
+
               phi = YRotationAngleFromRotationMatrix(R);
               std::cout << "t : " << t << std::endl; 
               std::cout << "phi : " << phi*(180/3.141592) << std::endl; 
-              tf::matrixEigenToMsg(H, H_msg);
+              tf::matrixEigenToMsg(H_e, H_msg);
               tf::matrixEigenToMsg(t, ck_t_ct_msg);
               tf::matrixEigenToMsg(n, n_msg);
               homography_pub.publish(H_msg);
@@ -162,13 +181,14 @@ int main(int argc, char **argv)
               d_pub.publish(d_msg);
               phi_msg.data = phi;
               phi_pub.publish(phi_msg);
-              if (abs(H(0, 0)) > 0.99 && abs(H(0, 1)) < 0.06 && abs(H(0, 2)) < 0.05 &&
-              abs(H(2, 0)) < 0.05 && abs(H(2, 1)) < 0.05 && abs(H(2, 2)) > 0.99){
+              if (abs(H_e(0, 0)) > 0.90 && abs(H_e(0, 1)) < 0.1 && abs(H_e(0, 2)) < 0.1 &&
+              abs(H_e(2, 0)) < 0.1 && abs(H_e(2, 1)) < 0.1 && abs(H_e(2, 2)) > 0.90){
                 task = task + 1;
                 refImage = desiredImages[task];
               }
 
               task_pub.publish(task_msg);
+              Nreferences_pub.publish(Nreferences_msg);
           }
           counter++;
           ros::spinOnce();   //Activa callbacks

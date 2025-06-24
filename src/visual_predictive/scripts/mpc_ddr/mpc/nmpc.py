@@ -420,11 +420,15 @@ class OptimizationHMPC(object):
 						# Delta between subsequent time steps
 			if i == 0:
 				delta_v = v_i
+				delta_omega = omega_i
 			else:
 				delta_v = v_i - v_prev
+				delta_omega = omega_i - omega_prev
 
 			v_prev = v_i
+			omega_prev = omega_i
 			J+= 1.2*delta_v**2
+			J+= 2.5e3*delta_omega**2
 
 			
 			# Obstacle´s constraints

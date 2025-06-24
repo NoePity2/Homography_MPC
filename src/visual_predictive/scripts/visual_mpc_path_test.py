@@ -105,14 +105,7 @@ class VMPC():
 			if self.task < 2:
 				self.V_k[0] = sat_smooth_exp(self.V_k[0], 0.23, M)
 				self.vel_msg.linear.x  = self.V_k[0]
-				
-				## GIRAR A LA DERECHA
-				if(abs(self.homo_matrix.data[8]) < 1 and self.homo_matrix.data[6] > 0.03 and self.homo_matrix.data[2] < -0.03):
-					self.angular_velocity[0] = sat_smooth_exp(self.angular_velocity[0], 0.2, M) * -1
-				
-				## GIRAR A LA IZQUIERDA
-				if(abs(self.homo_matrix.data[8]) < 1 and self.homo_matrix.data[6] < -0.03 and self.homo_matrix.data[2] > 0.03):
-					self.angular_velocity[0] = sat_smooth_exp(self.angular_velocity[0], 0.2, M)# * -1			
+						
 			else:
 				if (pico_time > 2):
 
@@ -124,21 +117,12 @@ class VMPC():
 						#self.ctrl_c = True 
 					
 					else:
-						# Mezclar suavemente las funciones para evitar discontinuidad
-						self.V_k[0] = sigma(self.V_k[0]*2, 0.25, M)
 						self.vel_msg.linear.x  = self.V_k[0]
 
-						## GIRAR A LA DERECHA
-						if(abs(self.homo_matrix.data[8]) < 1 and self.homo_matrix.data[6] > 0.009 and self.homo_matrix.data[2] < -0.009):
-							self.angular_velocity[0] = sat_smooth_exp(self.angular_velocity[0], 0.08, 0.15) * -1
-						
-						## GIRAR A LA IZQUIERDA
-						if(abs(self.homo_matrix.data[8]) < 1 and self.homo_matrix.data[6] < -0.009 and self.homo_matrix.data[2] > 0.009):
-							self.angular_velocity[0] = sat_smooth_exp(self.angular_velocity[0], 0.08, 0.15)
 
 				else:
 				
-					self.V_k[0] = M
+					self.V_k[0] = sat_smooth_exp(self.V_k[0], 0.23, M)
 					pico_time = pico_time + 1
 					self.vel_msg.linear.x  = self.V_k[0]
 					

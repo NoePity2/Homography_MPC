@@ -25,7 +25,7 @@ x_new = np.array( [ [0],[0],[np.deg2rad(theta_k_w)]] )
 
 dt = 0.1
 t0 = 0
-tf = 90
+tf = 50
 times = np.arange(t0,tf,dt)
 trajectory = np.zeros(( 5, len(times) ))
 
@@ -176,14 +176,13 @@ for j in range(len(times)):
 
    #Saturation function
    if (task < 3):
-      #u[0] = sigma(u[0], L, M)
       u[0] = sat_smooth_exp(u[0], 0.259, M)
       #u[1] = sat_smooth_exp(u[1], 0.7, M) 
    else:
-      if (pico_time > 2):
-         u[0] = sigma(u[0]*2, 0.259, M)
+      if (pico_time > 1):
+         u[0] = u[0]
       else:
-         u[0] = M
+         u[0] = sat_smooth_exp(u[0], 0.259, M)
          pico_time = pico_time + 1
          
 
