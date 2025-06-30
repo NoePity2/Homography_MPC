@@ -7,8 +7,8 @@ import numpy as np
 
 def orientation_params():
 
-	alpha = 2.5e3 # qp gain
-	beta  = 1.5e-1 # 2e-2 non linear 
+	alpha = 1e-3 # qp gain
+	beta  = 1.5e1 # 2e-2 non linear 
 	lbO   = -0.7 # lower angular velocity constraint
 	ubO   = 0.7 # upper angular velocity constraint
 
@@ -23,9 +23,9 @@ def orientation_params():
 
 def position_params():
 
-	alpha1 = 1.5e2
-	lbv    = -0.26 # lower velocity constraint
-	ubv    = 0.26 # upper velocity constraint
+	alpha1 = 1e-3
+	lbv    = -0.2 # lower velocity constraint
+	ubv    = 0.2 # upper velocity constraint
 
 	params = {
 		'alpha_v': alpha1,
@@ -43,6 +43,7 @@ def vision_parameters():
 	b31 = 1e0
 	b32 = 1e0
 	b33 = 1e0
+	lambda_gain = 1.5
 
 	params = {
 		'b11': b11,
@@ -51,6 +52,7 @@ def vision_parameters():
 		'b31': b31,
 		'b32': b32,
 		'b33': b33,
+		'lambda_gain':lambda_gain,
 	}
 
 	return params
