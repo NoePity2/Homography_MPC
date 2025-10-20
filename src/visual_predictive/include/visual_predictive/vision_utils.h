@@ -30,6 +30,13 @@
 #include <opencv2/features2d.hpp>
 #include <visp3/vision/vpHomography.h>
 
+#include <tuple>
+#include <sstream>
+
+#include <visp3/core/vpPoint.h>
+#include <cmath> // para std::sqrt
+#include <string>
+
 using namespace cv;
 
 
@@ -71,6 +78,12 @@ enum class homographySolution {
     NONE=-1
 };
 
+// Colores por segmento: izquierda (rojo), centro (verde), derecha (azul)
+const cv::Scalar colors[3] = {
+    cv::Scalar(0, 0, 255),   // rojo
+    cv::Scalar(0, 255, 0),   // verde
+    cv::Scalar(255, 0, 0)    // azul
+};
 
 
 Matrix_t ComputeHomography( const std::vector<cv::Point2d> &cv_reference_points,
@@ -88,6 +101,49 @@ void RecoverFromHomography(const Matrix_t &homography,Matrix_t &R, Vector3D_t &t
 void RecoverFromEssential(const Matrix_t &essential,Matrix_t &R, Vector3D_t &t);
 
 void EstimateHomography(const cv::Mat &refImg, const cv::Mat &currImg, const Matrix_t &K, Matrix_t &H, const int counter );
+
+//================================================================================================
+
+bool isNonColinear(FPTYPE x1, FPTYPE y1, FPTYPE x2, FPTYPE y2, FPTYPE x3, FPTYPE y3);
+
+void reorderVector(std::vector<double>& v, int i, int j, int k);
+
+void selectTripletFromSegments( const std::vector<FPTYPE> &ref_x,
+                                const std::vector<FPTYPE> &ref_y,
+                                std::tuple<int,int,int> &selected_idxs);
+
+
+void selectBestTriplet(std::vector<FPTYPE>& ref_x, std::vector<FPTYPE>& ref_y,
+                       std::vector<FPTYPE>& cur_x, std::vector<FPTYPE>& cur_y,
+                       const std::vector<cv::KeyPoint>& keypointsRef,
+                       const std::vector<cv::DMatch>& matches,
+                       std::tuple<int, int, int>& selected_idxs);
+
+
+void drawSelectedTriplet(const std::vector<cv::KeyPoint>& keypointsRef,
+                         const std::vector<cv::DMatch>& goodMatches,
+                         const std::tuple<int, int, int>& best_idxs,
+                         const cv::Mat& refImg, int counter);
+
+void drawSegmentedKeypoints(const cv::Mat& image,
+                            const std::vector<cv::KeyPoint>& keypoints,
+                            const std::string& filename);
+
+double evaluateHomographyProjection(
+    const std::vector<double> &ref_x,
+    const std::vector<double> &ref_y,
+    const std::vector<double> &curr_x,
+    const std::vector<double> &curr_y,
+    const vpHomography &H);
+
+
+void detectORBInSegments(  const cv::Mat &img,
+    std::vector<cv::KeyPoint> &keypoints_out,
+    cv::Mat &descriptors_out,
+    int nFeaturesPerRegion );
+
+
+//=================================================================================================
 
 void EstimateHomographyVisp(const cv::Mat &refImg, const cv::Mat &currImg, const Matrix_t &K, vpHomography &H, const int counter );
 
