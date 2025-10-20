@@ -114,15 +114,13 @@ def get_3D_target_points(n_points,xmin,ymin,ymax,zmin,zmax):
 
 
 # This is a saturation function.
-def sigma(s, L, M):
+def sigma(x, L, M):
 
     c = np.pi / (2 * (M - L))
     
-    if s > L:
-        return (1/c) * np.tanh(c * (s - L)) + L
-    elif s < -L:
-        return -(1/c) * np.tanh(c * (-s - L)) - L
+    if x > L:
+        return x
+        
     else:
-        return s
-     
+        return L + (np.tanh(c*(x-L)))/c
 
