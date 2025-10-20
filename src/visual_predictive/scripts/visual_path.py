@@ -41,12 +41,14 @@ class VMPC():
         #Velocities (Controls)
 		self.angular_velocity = 0.0
 		self.V_k              = 0.0
+		self.v_x = 0.0
+		self.omega = 0.0
 
 		self.params_position    = params_position
 		self.params_orientation = params_orientation
 		self.vision_parameters  = vision_parameters
 
-		M = 0.26
+		M = 0.20
 		self.pico_time = 0
 		self.task = 0
 		self.Nreferences = 0 
@@ -67,8 +69,9 @@ class VMPC():
 		self.n_plane__sub   = rospy.Subscriber("/n_plane_vector", Float64MultiArray,self.n_vector_callback)
 		self.d_value_sub    = rospy.Subscriber("/d_value",Float64,self.d_value_callback)
 		self.phi_sub        = rospy.Subscriber("/phi",Float64,self.phi_value_callback)
-		self.task_sub		= rospy.Subscriber("/n_task",Int32,self.task_value_callback)
+		self.task_sub	     = rospy.Subscriber("/n_task",Int32,self.task_value_callback)
 		self.Nreferences_sub	= rospy.Subscriber("/n_references",Int32,self.number_references_callback)
+		self.odom_sub       = rospy.Subscriber('/odom_raw',Odometry, self.odometry_callback)
 
 		self.homo_matrix    = Float64MultiArray()
 		self.ck_t_ct_vector = Float64MultiArray()
@@ -84,8 +87,8 @@ class VMPC():
 
 		#optimal_controls_pub = rospy.Publisher("/optimal_controls", Twist, queue_size=10)
 		#self.optimal_controls = Twist()
-		self.vel_pub = rospy.Publisher('/mobile_base_controller/cmd_vel', Twist, queue_size=10)
-		#self.vel_pub = rospy.Publisher('/cmd_vel', Twist, queue_size=10)
+		#self.vel_pub = rospy.Publisher('/mobile_base_controller/cmd_vel', Twist, queue_size=10)
+		self.vel_pub = rospy.Publisher('/cmd_vel', Twist, queue_size=10)
 		self.vel_msg = Twist()
 		
 		#self.error_pub = rospy.Publisher('/tracking_errors', Pose2D, queue_size=10)
@@ -107,29 +110,28 @@ class VMPC():
 			print('Number of references:', self.Nreferences)
 
 			if self.task < (self.Nreferences - 1):
-				self.V_k[0] = sat_smooth_exp(self.V_k[0], 0.23, M)
+				self.V_k[0] = sigma(self.V_k[0], 0.18, M)
 				self.vel_msg.linear.x  = self.V_k[0]
 							
 			else:
-				if (self.pico_time > 2):
+				
+				if (self.pico_time > 5):
 
-					if(abs(self.homo_matrix.data[0])>0.90 and abs(self.homo_matrix.data[1])<0.1 and abs(self.homo_matrix.data[2])<0.1 and abs(self.homo_matrix.data[6])<0.1 and abs(self.homo_matrix.data[7])<0.1 and abs(self.homo_matrix.data[8])>0.90):
+					if(abs(self.homo_matrix.data[0])>0.94 and abs(self.homo_matrix.data[1])<0.06 and abs(self.homo_matrix.data[2])<0.06 and abs(self.homo_matrix.data[6])<0.06 and abs(self.homo_matrix.data[7])<0.06 and abs(self.homo_matrix.data[8])>0.94):
 						self.vel_msg.linear.x = 0.0; self.vel_msg.angular.z = 0.0
 						self.V_k[0] = 0
 						self.angular_velocity[0] = 0
 						self.vel_pub.publish(self.vel_msg)
-						self.ctrl_c = True
+						#self.ctrl_c = True
 						print('Out............................') 
 					
 					else:
-						# Mezclar suavemente las funciones para evitar discontinuidad
-						#self.V_k[0] = sigma(self.V_k[0]*2, 0.25, M)
 						self.vel_msg.linear.x  = self.V_k[0]
 						print('In......................')
 
 				else:
 				
-					self.V_k[0] = sat_smooth_exp(self.V_k[0], 0.23, M)
+					self.V_k[0] = sigma(self.V_k[0], 0.18, M)
 					self.pico_time += 1
 					self.vel_msg.linear.x  = self.V_k[0]
 					
@@ -140,6 +142,7 @@ class VMPC():
 			self.vel_msg.angular.z = self.angular_velocity[0]
 			print('self.angular_velocity[0] = ', self.angular_velocity[0])
 			W = float(self.angular_velocity[0])
+			Phi = float(self.phi.data)
 			#==================== LogCurrentResults =========================#
 			self.t2 = rospy.Time.now().to_sec()
 			if(self.homo_matrix.data == [] or self.phi.data == [] or self.ck_t_ct_vector.data==[] or self.n_vector.data==[] or self.d_value.data==[]):
@@ -169,7 +172,11 @@ class VMPC():
 
 			text_V = "{:.3f}".format(V)
 			text_W = "{:.3f}".format(W)
-			text_line = text_t+"\t"+text_h11_p+"\t"+text_h11_c+"\t"+text_h12_p+"\t"+text_h12_c+"\t"+text_h13_p+"\t"+text_h13_c+"\t"+text_h31_p+"\t"+text_h31_c+"\t"+text_h32_p+"\t"+text_h32_c+"\t"+text_h33_p+"\t"+text_h33_c+"\t"+text_V+"\t"+text_W+"\n"
+			
+			text_V_real = "{:.3f}".format(float(self.vel_x))
+			text_W_real = "{:.3f}".format(float(self.omega))
+			
+			text_line = text_t+"\t"+text_h11_p+"\t"+text_h11_c+"\t"+text_h12_p+"\t"+text_h12_c+"\t"+text_h13_p+"\t"+text_h13_c+"\t"+text_h31_p+"\t"+text_h31_c+"\t"+text_h32_p+"\t"+text_h32_c+"\t"+text_h33_p+"\t"+text_h33_c+"\t"+text_V+"\t"+text_W+"\t"+text_V_real+"\t"+text_W_real+"\n"
 			#print (text_line)
 
 			file_obj.write(text_line)
@@ -281,10 +288,6 @@ class VMPC():
 
 	def get_rk_theta_rk1(self):
 		return self.HMPC.get_rk_theta_rk1(self.angular_velocity[0],self.x_k)
-
-def sat_smooth_exp(x, L_min, M):
-	return L_min + (M - L_min) * np.exp(-x)
-
 
 
 
