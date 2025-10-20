@@ -18,14 +18,23 @@
  */
 
 #include <cmath>
+#include <iostream>
+#include <tuple>
+#include <vector>
+
 
 #include <Eigen/Dense>
 #include <Eigen/Geometry>
+
 #include <opencv2/opencv.hpp>
-#include "vision_utils.h"
 #include <opencv2/core/eigen.hpp>
-#include <iostream>
+#include <opencv2/core.hpp>
+#include <opencv2/highgui.hpp>
+#include <opencv2/imgproc.hpp>
+
 #include <visp3/vision/vpHomography.h>
+
+#include "vision_utils.h"
 
 using namespace cv;
 
@@ -237,7 +246,10 @@ void EstimateHomography(const cv::Mat &refImg, const cv::Mat &currImg, const Mat
     cv::Mat descriptorsRef, descriptorsCurr; 
 
     detector->detectAndCompute( refImg, noArray(), keypointsRef, descriptorsRef );
-    detector->detectAndCompute( currImg, noArray(), keypointsCurr, descriptorsCurr ); 
+    detector->detectAndCompute( currImg, noArray(), keypointsCurr, descriptorsCurr );
+
+    //detectORBInSegments(refImg, keypointsRef, descriptorsRef, 500);
+    //detectORBInSegments(currImg, keypointsCurr, descriptorsCurr, 500);
 
     descriptorsRef.convertTo(descriptorsRef, CV_8U);
     descriptorsCurr.convertTo(descriptorsCurr, CV_8U);
@@ -276,29 +288,204 @@ void EstimateHomography(const cv::Mat &refImg, const cv::Mat &currImg, const Mat
     std::cout << "H: " << H << std::endl;
 
     std::stringstream ss;
-    ss << "/home/noe/ddr_ws/src/visual_predictive/src/folder_matches/" << counter << ".jpg";
-
-    // cv::Mat out;
-    // cv::drawMatches(refImg, keypointsRef, currImg, keypointsCurr, goodMatches, out);
-    // cv::imwrite(ss.str(),out);
+    ss << "/home/axel/Homography_MPC/src/visual_predictive/src/folder_matches/" << counter << ".jpg";
 
     cv::Mat out;
-    cv::drawKeypoints(currImg, keypointsCurr, out, cv::Scalar(255,0,0), cv::DrawMatchesFlags::DEFAULT);
+    cv::drawMatches(refImg, keypointsRef, currImg, keypointsCurr, goodMatches, out);
     cv::imwrite(ss.str(),out);
+
+    //cv::Mat out;
+    //cv::drawKeypoints(currImg, keypointsCurr, out, cv::Scalar(255,0,0), cv::DrawMatchesFlags::DEFAULT);
+    //cv::imwrite(ss.str(),out);
 
     //std::cout <<"End of the EstimateHomography function... " << std::endl;
 
 }
 
+
+//==================================================================================================
+
+// ===================== FUNCIONES AUXILIARES =========================== //
+
+//********************************************************* */
+// Returns true if the three points are not collinear
+bool isNonColinear(FPTYPE x1, FPTYPE y1, FPTYPE x2, FPTYPE y2, FPTYPE x3, FPTYPE y3) {
+    double area = std::abs(x1*(y2 - y3) + x2*(y3 - y1) + x3*(y1 - y2));
+    return area > 1e-6;
+}
+
+//********************************************************* */
+void reorderVector(std::vector<double>& v, int i, int j, int k) {
+    std::vector<double> tmp = {v[i], v[j], v[k]};
+    for (int n = 0; n < v.size(); ++n)
+        if (n != i && n != j && n != k)
+            tmp.push_back(v[n]);
+    v = tmp;
+}
+
+
+// ===================== SELECCIÓN DE TRIPLETA DE PUNTOS =================== //
+
+void selectBestTriplet(std::vector<FPTYPE>& ref_x, std::vector<FPTYPE>& ref_y,
+                       std::vector<FPTYPE>& cur_x, std::vector<FPTYPE>& cur_y,
+                       const std::vector<cv::KeyPoint>& keypointsRef,
+                       const std::vector<cv::DMatch>& matches,
+                       std::tuple<int, int, int>& selected_idxs) {
+    const int N = matches.size();
+    if (N < 3) return;
+
+    const int width = 640; // o usa refImg.cols si lo tienes disponible
+    std::vector<int> left_idxs, center_idxs, right_idxs;
+
+    for (int i = 0; i < N; ++i) {
+        float x = keypointsRef[matches[i].queryIdx].pt.x;
+        if (x < width / 3)
+            left_idxs.push_back(i);
+        else if (x < 2 * width / 3)
+            center_idxs.push_back(i);
+        else
+            right_idxs.push_back(i);
+    }
+
+    if (left_idxs.empty() || center_idxs.empty() || right_idxs.empty()) {
+        selected_idxs = {0, 1, 2};
+        return;
+    }
+
+    double max_area = 0.0;
+    std::tuple<int, int, int> best = {left_idxs[0], center_idxs[0], right_idxs[0]};
+
+    for (int i : left_idxs)
+        for (int j : center_idxs)
+            for (int k : right_idxs)
+                if (isNonColinear(ref_x[i], ref_y[i], ref_x[j], ref_y[j], ref_x[k], ref_y[k])) {
+                    double area = std::abs(ref_x[i]*(ref_y[j]-ref_y[k]) +
+                                           ref_x[j]*(ref_y[k]-ref_y[i]) +
+                                           ref_x[k]*(ref_y[i]-ref_y[j]));
+                    if (area > max_area) {
+                        max_area = area;
+                        best = {i, j, k};
+                    }
+                }
+
+    selected_idxs = best;
+
+    int i, j, k;
+    std::tie(i, j, k) = best;
+
+    reorderVector(ref_x, i, j, k);
+    reorderVector(ref_y, i, j, k);
+    reorderVector(cur_x, i, j, k);
+    reorderVector(cur_y, i, j, k);
+}
+
+// ===================== VISUALIZACIÓN =================== //
+
+void drawSelectedTriplet(const std::vector<cv::KeyPoint>& keypointsRef,
+                         const std::vector<cv::DMatch>& goodMatches,
+                         const std::tuple<int, int, int>& best_idxs,
+                         const cv::Mat& refImg, int counter) {
+    cv::Mat img_copy = refImg.clone();
+    int i, j, k;
+    std::tie(i, j, k) = best_idxs;
+
+    // Extraer los puntos de la imagen
+    cv::Point2f p1 = keypointsRef[goodMatches[i].queryIdx].pt;
+    cv::Point2f p2 = keypointsRef[goodMatches[j].queryIdx].pt;
+    cv::Point2f p3 = keypointsRef[goodMatches[k].queryIdx].pt;
+
+    // Dibujar todos los puntos en azul
+    for (const auto& m : goodMatches)
+        cv::circle(img_copy, keypointsRef[m.queryIdx].pt, 2, cv::Scalar(255, 0, 0), -1);
+
+    // Dibujar los tres puntos seleccionados en rojo
+    cv::circle(img_copy, p1, 6, cv::Scalar(0, 0, 255), -1);
+    cv::circle(img_copy, p2, 6, cv::Scalar(0, 0, 255), -1);
+    cv::circle(img_copy, p3, 6, cv::Scalar(0, 0, 255), -1);
+
+    // Dibujar el triángulo
+    cv::line(img_copy, p1, p2, cv::Scalar(0, 255, 0), 2);
+    cv::line(img_copy, p2, p3, cv::Scalar(0, 255, 0), 2);
+    cv::line(img_copy, p3, p1, cv::Scalar(0, 255, 0), 2);
+
+    std::stringstream ss;
+    ss << "/home/axel/Homography_MPC/src/visual_predictive/src/areas_virtual_plane/" << counter << ".jpg";
+    cv::imwrite(ss.str(), img_copy);
+}
+
+void drawSegmentedKeypoints(const cv::Mat& image,
+                            const std::vector<cv::KeyPoint>& keypoints,
+                            const std::string& filename) {
+    cv::Mat output = image.clone();
+    int width = image.cols;
+
+    for (const auto& kp : keypoints) {
+        int segment = kp.pt.x < width / 3 ? 0 :
+                      (kp.pt.x < 2 * width / 3 ? 1 : 2);
+        cv::circle(output, kp.pt, 3, colors[segment], -1);
+    }
+
+    cv::imwrite(filename, output);
+}
+
+void detectORBInSegments(
+    const cv::Mat &img,
+    std::vector<cv::KeyPoint> &keypoints_out,
+    cv::Mat &descriptors_out,
+    int nFeaturesPerRegion = 500)
+{
+    cv::Ptr<cv::ORB> detector = cv::ORB::create(nFeaturesPerRegion);
+    int w = img.cols;
+    int h = img.rows;
+
+    std::vector<cv::KeyPoint> keypoints_all;
+    std::vector<cv::Mat> descriptors_parts;
+
+    // Dividir en 3 regiones verticales: izquierda, centro, derecha
+    for (int i = 0; i < 3; ++i) {
+        int x0 = (w / 3) * i;
+        int width = (i == 2) ? (w - x0) : (w / 3);  // Asegura que el último segmento cubra todo
+
+        cv::Rect roi(x0, 0, width, h);
+        cv::Mat segment = img(roi);
+
+        std::vector<cv::KeyPoint> keypoints_seg;
+        cv::Mat descriptors_seg;
+
+        detector->detectAndCompute(segment, cv::noArray(), keypoints_seg, descriptors_seg);
+
+        // Ajustar coordenadas al sistema global de la imagen
+        for (auto &kp : keypoints_seg)
+            kp.pt.x += x0;
+
+        // Guardar resultados
+        keypoints_all.insert(keypoints_all.end(), keypoints_seg.begin(), keypoints_seg.end());
+        if (!descriptors_seg.empty())
+            descriptors_parts.push_back(descriptors_seg);
+    }
+
+    // Concatenar descriptores
+    if (!descriptors_parts.empty())
+        cv::vconcat(descriptors_parts, descriptors_out);
+
+    keypoints_out = keypoints_all;
+}
+
+//=================================================================================================
+
 void EstimateHomographyVisp(const cv::Mat &refImg, const cv::Mat &currImg, const Matrix_t &K, vpHomography &H, const int counter )
 {
     //*----------------- Step 1: Detect keypoints and compute keypoints using ORB Detector    -------------------------*//
-    int nFeatures = 600;
-    cv::Ptr<cv::FeatureDetector> detector = cv::ORB::create(nFeatures);
+    //int nFeatures = 600;
+    //cv::Ptr<cv::FeatureDetector> detector = cv::ORB::create(nFeatures);
     std::vector<cv::KeyPoint> keypointsRef, keypointsCurr;
     cv::Mat descriptorsRef, descriptorsCurr;
-    detector->detectAndCompute( refImg, noArray(), keypointsRef, descriptorsRef );
-    detector->detectAndCompute( currImg, noArray(), keypointsCurr, descriptorsCurr );
+
+    //detector->detectAndCompute( refImg, noArray(), keypointsRef, descriptorsRef );
+    //detector->detectAndCompute( currImg, noArray(), keypointsCurr, descriptorsCurr );
+
+    detectORBInSegments(refImg, keypointsRef, descriptorsRef);
+    detectORBInSegments(currImg, keypointsCurr, descriptorsCurr);
 
     descriptorsRef.convertTo(descriptorsRef, CV_8U);
     descriptorsCurr.convertTo(descriptorsCurr, CV_8U);
@@ -332,10 +519,8 @@ void EstimateHomographyVisp(const cv::Mat &refImg, const cv::Mat &currImg, const
         //====================== Reference points ====================================
         desnPoint(0) =  keypointsRef[ goodMatches[i].queryIdx ].pt.x;
         desnPoint(1) =  keypointsRef[ goodMatches[i].queryIdx ].pt.y;
-
         //=================== points on the normalized plane =========================
         normPoint = NormalicePoint(desnPoint,Kinv_);
-
         refPoints_x[i] = normPoint(0);
         refPoints_y[i] = normPoint(1);
 
@@ -347,17 +532,74 @@ void EstimateHomographyVisp(const cv::Mat &refImg, const cv::Mat &currImg, const
         currentPoints_y[i] = normPoint(1);
     }
 
+    std::tuple<int,int,int> selected_idxs;
+    selectBestTriplet(refPoints_x, refPoints_y,currentPoints_x, currentPoints_y,keypointsRef, goodMatches,
+                    selected_idxs);
+
+    drawSelectedTriplet(keypointsRef, goodMatches, selected_idxs, refImg, counter);
+
     vpHomography::HLM(currentPoints_x, currentPoints_y,refPoints_x, refPoints_y, false, H);
     H /= H[1][1];
 
-    // std::stringstream ss;
-    // ss << "/home/noe/catkin_ws_tutorials/src/pbvs_controller2/src/visp_matches/matched_keypoints" << counter << ".jpg";
+    //FPTYPE rmse = evaluateHomographyProjection(refPoints_x, refPoints_y, currentPoints_x, currentPoints_y,H);
 
-    // cv::Mat out;
-    // cv::drawMatches(refImg, keypointsRef, currImg, keypointsCurr, goodMatches, out);
-    // cv::imwrite(ss.str(),out);
+    std::stringstream ss1;
+    cv::Mat outRefImg = refImg.clone();
+    ss1 << "/home/axel/Homography_MPC/src/visual_predictive/src/region_matches/ref_img_" << counter << ".jpg";
+    drawSegmentedKeypoints(outRefImg,keypointsRef,ss1.str());
+
+    std::stringstream ss2;
+    cv::Mat outCurrImg = currImg.clone();
+    ss2 << "/home/axel/Homography_MPC/src/visual_predictive/src/region_matches/curr_img_" << counter << ".jpg";
+    drawSegmentedKeypoints(outCurrImg,keypointsCurr,ss2.str());
+
+    std::stringstream ss;
+    ss << "/home/axel/Homography_MPC/src/visual_predictive/src/folder_matches/" << counter << ".jpg";
+    cv::Mat out;
+    cv::drawMatches(refImg, keypointsRef, currImg, keypointsCurr, goodMatches, out);
+    cv::imwrite(ss.str(),out);
+
+}
 
 
+double evaluateHomographyProjection(
+    const std::vector<double> &ref_x,
+    const std::vector<double> &ref_y,
+    const std::vector<double> &curr_x,
+    const std::vector<double> &curr_y,
+    const vpHomography &H)
+{
+    assert(ref_x.size() == curr_x.size());
+    assert(ref_y.size() == curr_y.size());
+    size_t N = ref_x.size();
+    double error_sum = 0.0;
+
+    std::cout << "\n--- Homography Projection Evaluation ---\n";
+    for (size_t i = 0; i < N; ++i)
+    {
+        vpPoint p_curr, p_proj, p_ref;
+        p_curr.set_x(curr_x[i]);  p_curr.set_y(curr_y[i]);  p_curr.set_Z(1);
+        p_ref.set_x(ref_x[i]);    p_ref.set_y(ref_y[i]);    p_ref.set_Z(1);
+
+        p_proj = H * p_curr;
+        double x_proj = p_proj.get_x() / p_proj.get_w();
+        double y_proj = p_proj.get_y() / p_proj.get_w();
+
+        double x_ref = p_ref.get_x();
+        double y_ref = p_ref.get_y();
+
+        double error = std::sqrt((x_proj - x_ref)*(x_proj - x_ref) + (y_proj - y_ref)*(y_proj - y_ref));
+        error_sum += error * error;
+
+        std::cout << "Point " << i << ": ";
+        std::cout << "ref=(" << x_ref << ", " << y_ref << "), ";
+        std::cout << "proj=(" << x_proj << ", " << y_proj << "), ";
+        std::cout << "error=" << error << std::endl;
+    }
+
+    double rmse = std::sqrt(error_sum / N);
+    std::cout << "\nRMSE projection error: " << rmse << std::endl;
+    return rmse;
 }
 
 void Rodriguez(const Matrix_t &R, Vector3D_t &u){
@@ -393,7 +635,6 @@ Point2D_t NormalicePoint(const Point2D_t &point, const Matrix_t &Kinv_ )
 void RecoverFromHomographyVisp(vpHomography &H, vpRotationMatrix &R, vpTranslationVector &t, vpColVector &n, vpThetaUVector &u)
 {
     H.computeDisplacement(R,t,n);
-    
     u.buildFrom(R);
 }
 

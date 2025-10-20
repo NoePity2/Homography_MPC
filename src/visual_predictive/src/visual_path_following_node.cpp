@@ -88,8 +88,8 @@ int main(int argc, char **argv)
     bool fin = false;
     std::vector<cv::Mat> desiredImages;
 
-    K << 522.1910329546544,         0.0      , 320.5, 
-         0.0              , 522.1910329546544, 240.5, 
+    K << 544.9615478515625,         0.0      , 312.6927185058594, 
+         0.0              , 544.9615478515625, 238.39773559570312, 
          0.0              ,         0.0      ,   1.0;
 
 
@@ -160,11 +160,11 @@ int main(int argc, char **argv)
               cv::imwrite("/home/axel/Homography_MPC/src/visual_predictive/src/current_image.jpg",currentImage);
 
             //------- Estimate the homography ----------------------//
-              //EstimateHomography(refImage, currentImage, K, H_e, counter );
-              EstimateHomographyVisp(refImage, currentImage, K, H, counter);
-              vp::visp2eigen(H, H_e);
+              EstimateHomography(refImage, currentImage, K, H_e, counter );
+              //EstimateHomographyVisp(refImage, currentImage, K, H, counter);
+              //vp::visp2eigen(H, H_e);
 
-              std::cout << H << '\n' << H_e << std::endl;
+              //std::cout << H << '\n' << H_e << std::endl;
 
               RecoverFromHomography(H_e,R,t,n,d, counter, homSolution);
 
@@ -181,8 +181,8 @@ int main(int argc, char **argv)
               d_pub.publish(d_msg);
               phi_msg.data = phi;
               phi_pub.publish(phi_msg);
-              if (abs(H_e(0, 0)) > 0.90 && abs(H_e(0, 1)) < 0.1 && abs(H_e(0, 2)) < 0.1 &&
-              abs(H_e(2, 0)) < 0.1 && abs(H_e(2, 1)) < 0.1 && abs(H_e(2, 2)) > 0.90){
+              if (abs(H_e(0, 0)) > 0.94 && abs(H_e(0, 1)) < 0.06 && abs(H_e(0, 2)) < 0.06 &&
+              abs(H_e(2, 0)) < 0.06 && abs(H_e(2, 1)) < 0.06 && abs(H_e(2, 2)) > 0.94){
                 task = task + 1;
                 refImage = desiredImages[task];
               }
