@@ -143,7 +143,7 @@ class Pose(object):
 class HomographyMPC:
 	# def __init__(self):
 
-	def set_values(self,d=1,n=[0.0,0.0,0.0],ck_t_ct=[0.0,0.0,0.0],rk_x_rl=None,rk_y_rl=None,c_x_r=0.0,c_z_r=0.0,theta=0.0,phi=0.0):
+	def set_values(self,d=1,n=[0.0,0.0,1.0],ck_t_ct=[0.0,0.0,0.0],rk_x_rl=None,rk_y_rl=None,c_x_r=0.0,c_z_r=0.0,theta=None,phi=0.0):
 		self.d  = d
 		self.nx = n[0] 
 		self.ny = n[1]
@@ -155,7 +155,7 @@ class HomographyMPC:
 		self.c_x_r   = c_x_r
 		self.c_z_r   = c_z_r
 
-		self.theta   = theta
+		self.theta   = theta # This is a casadi variable
 		self.phi     = phi
 		self.nx_d    = self.nx/self.d
 		self.ny_d    = self.ny/self.d
@@ -163,11 +163,11 @@ class HomographyMPC:
 
 		self.a_row_1 = -np.sin(self.phi) 
 		self.b_row_1 = -np.cos(self.phi) 
-		self.d_row_1 = self.d*(-self.ck_x_ct*np.cos(self.phi) + self.ck_z_ct*np.sin(self.phi)) 
+		self.d_row_1 = (-self.ck_x_ct*np.cos(self.phi) + self.ck_z_ct*np.sin(self.phi)) 
 
 		self.a_row_3 = np.cos(self.phi) 
 		self.b_row_3 = -np.sin(self.phi) 
-		self.d_row_3 = self.d*(-self.ck_x_ct*np.sin(self.phi) - self.ck_z_ct*np.cos(self.phi))  
+		self.d_row_3 = (-self.ck_x_ct*np.sin(self.phi) - self.ck_z_ct*np.cos(self.phi))  
 
 
 	def get_predictive_state_values(self,v,omega,state_vector,T):
@@ -318,6 +318,7 @@ class OptimizationHMPC(object):
 
 	def update_predictive_values(self,v,omega,state_vector,T):
 		#Find predicted values to introduce them into Objective Function \bar{H}- \Gamma
+		print("update_predictive_values")
 		self.h11_predicted = self.Homography11.predicted_value(v,omega,state_vector,T)
 		self.h12_predicted = self.Homography12.predicted_value(v,omega,state_vector,T)
 		self.h13_predicted = self.Homography13.predicted_value(v,omega,state_vector,T)
@@ -325,8 +326,9 @@ class OptimizationHMPC(object):
 		self.h32_predicted = self.Homography32.predicted_value(v,omega,state_vector,T)
 		self.h33_predicted = self.Homography33.predicted_value(v,omega,state_vector,T)
 
+
 	def set_desired_values(self,H_actual):
-		print(H_actual)
+		print("H_actual: ", H_actual)
 		self.h11_desired_value = self.Homography11.get_expected_value() - (H_actual[0] - self.h11_predicted)
 		self.h12_desired_value = self.Homography12.get_expected_value() - (H_actual[1] - self.h12_predicted)
 		self.h13_desired_value = self.Homography13.get_expected_value() - (H_actual[2] - self.h13_predicted)
@@ -404,7 +406,7 @@ class OptimizationHMPC(object):
 			self.Homography32.set_values(d=d,n=n,ck_t_ct=ck_t_ct,rk_x_rl=x_kn,rk_y_rl=y_kn,c_x_r=c_x_r,c_z_r=c_z_r,theta=theta_kn,phi=phi)
 			self.Homography33.set_values(d=d,n=n,ck_t_ct=ck_t_ct,rk_x_rl=x_kn,rk_y_rl=y_kn,c_x_r=c_x_r,c_z_r=c_z_r,theta=theta_kn,phi=phi)   
 
-			'''lambda_k = vision_parameters['lambda_gain']**i
+			lambda_k = vision_parameters['lambda_gain']
 			J += 0.5 * lambda_k*vision_parameters['b11'] * (self.Homography11.get_h11() - self.h11_desired_value[0] )**2 
 			J += 0.5 * lambda_k*vision_parameters['b12'] * (self.Homography12.get_h12() - self.h12_desired_value[0] )**2
 			J += 0.5 * lambda_k*vision_parameters['b13'] * (self.Homography13.get_h13() - self.h13_desired_value[0] )**2
@@ -434,8 +436,8 @@ class OptimizationHMPC(object):
 
 			v_prev = v_i
 			omega_prev = omega_i
-			J+= 0.0*delta_v**2 #2.5e1
-			J+= 0.0*delta_omega**2 #7.5e5
+			J+= 0.0*delta_v**2
+			J+= 0.0*delta_omega**2
 
 			
 			# Obstacle´s constraints

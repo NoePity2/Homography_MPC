@@ -5,6 +5,42 @@ Parameters for lineal mpc
 
 import numpy as np
 
+
+
+def orientation_params_no_vision():
+
+	alpha = 1.5e-1 # qp gain
+	beta  = 2.5e1    # orientation error gain
+	lbO   = -0.89 # lower angular velocity constraint
+	ubO   = 0.89 # upper angular velocity constraint
+
+	params = {
+		'alpha_w': alpha,
+		'beta' : beta,
+		'lbO'  : lbO,
+		'ubO'  : ubO,
+	}
+
+	return params
+
+def position_params_no_vision():
+
+	alpha1 = 0.1
+	alpha2 = 1.2e-1
+	alpha3 = 1.2e-1
+	lbv    = -0.2 # lower velocity constraint
+	ubv    = 0.2 # upper velocity constraint
+
+	params = {
+		'alpha_v': alpha1,
+		'alpha2': alpha2,
+		'alpha3': alpha3,
+		'lbv'   : lbv,
+		'ubv'   : ubv,
+	}
+
+	return params
+
 def orientation_params():
 
 	alpha = 2.5e2# qp gain	1.5e1

@@ -15,7 +15,7 @@ from mpc_ddr.params.params import orientation_params, position_params, vision_pa
 class VMPC():
 
 
-	def __init__(self,params_position=None,params_orientation=None,vision_parameters=None,x_init=0,y_init=0,yaw_init=0,phi_target=0.0,T=0.1,N=5,c_x_r=0.0,c_z_r=-0.27):
+	def __init__(self,params_position=None,params_orientation=None,vision_parameters=None,x_init=0,y_init=0,yaw_init=0,phi_target=0.0,T=0.1,N=5,c_x_r=0.0,c_z_r=0.0): #c_z_r=-0.27
 		rospy.init_node('nonlinear_vmpc')
 		rospy.loginfo('Program has started') #Beginning terminal msg
 		rospy.logwarn("To start the movement, the simulation must be running\n\n")
@@ -32,10 +32,8 @@ class VMPC():
 		self.T          = T
 		self.x          = x_init
 		self.y          = y_init
-		self.c_x_r      = c_x_r #Traslation between robot with respec to the camera x-axis
+		self.c_x_r      = c_x_r #Traslation between robot with respect to the camera x-axis
 		self.c_z_r      = c_z_r
-		#self.PHI_TARGET = phi_target*np.pi/180
-		#self.phi_k      = self.PHI_TARGET - yaw_init
 
         #Velocities (Controls)
 		self.angular_velocity = 0.0
@@ -46,8 +44,6 @@ class VMPC():
 		self.vision_parameters  = vision_parameters
 
 		#States
-		#self.yaw = yaw_init*np.pi/180
-		#self.x_k = np.array( [[x_init],[y_init]] )
 		self.x_k = np.array( [ [x_init],[y_init],[yaw_init*np.pi/180]] )
 
 		# Obstacle parameters
@@ -73,15 +69,10 @@ class VMPC():
 	
 		# Solvers
 		self.HMPC = OptimizationHMPC(self.params_position,self.params_orientation,self.vision_parameters,self.N,self.T)
-
-		#optimal_controls_pub = rospy.Publisher("/optimal_controls", Twist, queue_size=10)
-		#self.optimal_controls = Twist()
-		self.vel_pub = rospy.Publisher('/mobile_base_controller/cmd_vel', Twist, queue_size=10)
+		self.vel_pub = rospy.Publisher('/cmd_vel', Twist, queue_size=10)
+		#self.vel_pub = rospy.Publisher('/mobile_base_controller/cmd_vel', Twist, queue_size=10)
 		self.vel_msg = Twist()
 		
-		#self.error_pub = rospy.Publisher('/tracking_errors', Pose2D, queue_size=10)
-		#self.error_msg = Pose2D()
-
 		self.vel_msg.linear.y = self.vel_msg.linear.z = self.vel_msg.angular.x = self.vel_msg.angular.y = 0
 		self.t0 = rospy.Time.now().to_sec()
 		
@@ -100,12 +91,14 @@ class VMPC():
 			self.vel_msg.angular.z = self.angular_velocity[0]
 			print('self.angular_velocity[0] = ', self.angular_velocity[0])
 			W = float(self.angular_velocity[0])
+			Phi = float(self.phi.data)
+
 			#==================== LogCurrentResults =========================#
 			self.t2 = rospy.Time.now().to_sec()
 			if(self.homo_matrix.data == [] or self.phi.data == [] or self.ck_t_ct_vector.data==[] or self.n_vector.data==[] or self.d_value.data==[]):
 				continue
 			
-			if(abs(self.homo_matrix.data[0])>0.99 and abs(self.homo_matrix.data[1])<0.01 and abs(self.homo_matrix.data[2])<0.01 and abs(self.homo_matrix.data[6])<0.01 and abs(self.homo_matrix.data[7])<0.01 and abs(self.homo_matrix.data[8])>0.99):
+			if(abs(self.homo_matrix.data[0])>0.95 and abs(self.homo_matrix.data[1])<0.05 and abs(self.homo_matrix.data[2])<0.05 and abs(self.homo_matrix.data[6])<0.05 and abs(self.homo_matrix.data[7])<0.05 and abs(self.homo_matrix.data[8])>0.95):
 				self.vel_msg.linear.x = 0.0; self.vel_msg.angular.z = 0.0
 				self.vel_pub.publish(self.vel_msg)
 				self.ctrl_c = True
@@ -133,7 +126,8 @@ class VMPC():
 
 			text_V = "{:.3f}".format(V)
 			text_W = "{:.3f}".format(W)
-			text_line = text_t+"\t"+text_h11_p+"\t"+text_h11_c+"\t"+text_h12_p+"\t"+text_h12_c+"\t"+text_h13_p+"\t"+text_h13_c+"\t"+text_h31_p+"\t"+text_h31_c+"\t"+text_h32_p+"\t"+text_h32_c+"\t"+text_h33_p+"\t"+text_h33_c+"\t"+text_V+"\t"+text_W+"\n"
+			text_phi = "{:.3f}".format(Phi)
+			text_line = text_t+"\t"+text_h11_p+"\t"+text_h11_c+"\t"+text_h12_p+"\t"+text_h12_c+"\t"+text_h13_p+"\t"+text_h13_c+"\t"+text_h31_p+"\t"+text_h31_c+"\t"+text_h32_p+"\t"+text_h32_c+"\t"+text_h33_p+"\t"+text_h33_c+"\t"+text_V+"\t"+text_W+"\t"+text_phi+"\n"
 			#print (text_line)
 
 			file_obj.write(text_line)
@@ -154,7 +148,8 @@ class VMPC():
 
 			#print(f"Homo current: = {self.homo_matrix.data}")
 			print("Homo predicted = ", self.predicted_values)
-			#self.x_k   = np.array( [[self.x],[self.y]] )
+			print("n = ", self.n_vector.data)
+			print("ck_t_ct_vector = ", self.ck_t_ct_vector.data)
 			# self.get_tracking_errors()
 			self.t = rospy.Time.now().to_sec()-self.t0 #Compute the controller time 
 			#self.delta_t = rospy.Time.now().to_sec() - self.t2
@@ -241,8 +236,6 @@ class VMPC():
 
 	def get_rk_theta_rk1(self):
 		return self.HMPC.get_rk_theta_rk1(self.angular_velocity[0],self.x_k)
-
-
 
 
 if __name__ == '__main__':

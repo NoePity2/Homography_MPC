@@ -189,11 +189,11 @@ def video_of_controls(file_path, prefix_name):
 if __name__ == '__main__':
 
    #Print controls and homograpy elements
-   # prefix_name = "Experiment_1"
-   # file_path = 'data_experiment_1_py.txt'
-   # #plot_visual_features_controls(file_path,prefix_name)
-   # #video_of_detailed_visual_features(file_path, prefix_name)
-   # video_of_controls(file_path, prefix_name)
+   prefix_name = "Experiment_1"
+   file_path = 'data_py.txt'
+   plot_visual_features_controls(file_path,prefix_name)
+   #video_of_detailed_visual_features(file_path, prefix_name)
+   #video_of_controls(file_path, prefix_name)
 
    # prefix_name = "Experiment_2"
    # file_path = 'data_experiment_2_py.txt'
@@ -213,11 +213,11 @@ if __name__ == '__main__':
    # video_of_detailed_visual_features(file_path, prefix_name)
    #video_of_controls(file_path, prefix_name)
 
-   prefix_name = "Experimento_1_pioneer"
-   file_path = "data_pioneer_1.txt"
+   #prefix_name = "Experimento_1_pioneer"
+   #file_path = "data_pioneer_1.txt"
    #plot_visual_features_controls(file_path,prefix_name)
    #video_of_detailed_visual_features(file_path, prefix_name)
-   video_of_controls(file_path, prefix_name)
+   #video_of_controls(file_path, prefix_name)
 
    #prefix_name = "Experimento_comparacion_pioneer"
    #file_path_1 = "data_pioneer_1.txt"

@@ -22,12 +22,21 @@
 #include <tuple>
 #include <vector>
 
+#include <iostream>
+#include <tuple>
+#include <vector>
+
 
 #include <Eigen/Dense>
 #include <Eigen/Geometry>
 
+
 #include <opencv2/opencv.hpp>
 #include <opencv2/core/eigen.hpp>
+#include <opencv2/core.hpp>
+#include <opencv2/highgui.hpp>
+#include <opencv2/imgproc.hpp>
+
 #include <opencv2/core.hpp>
 #include <opencv2/highgui.hpp>
 #include <opencv2/imgproc.hpp>
@@ -284,15 +293,15 @@ void EstimateHomography(const cv::Mat &refImg, const cv::Mat &currImg, const Mat
 
     //std::cout << "H: " << H << std::endl;
     H = K.inverse()*H*K;
-    H = H/H(1,1);
-    std::cout << "H: " << H << std::endl;
+    H = (1/H(1,1))*H;
+    //std::cout << "H: " << H << std::endl;
 
-    std::stringstream ss;
-    ss << "/home/axel/Homography_MPC/src/visual_predictive/src/folder_matches/" << counter << ".jpg";
+    //std::stringstream ss;
+    //ss << "/home/noe/ddr_ws/src/visual_predictive/src/folder_matches/" << counter << ".jpg";
 
-    cv::Mat out;
-    cv::drawMatches(refImg, keypointsRef, currImg, keypointsCurr, goodMatches, out);
-    cv::imwrite(ss.str(),out);
+    // cv::Mat out;
+    // cv::drawMatches(refImg, keypointsRef, currImg, keypointsCurr, goodMatches, out);
+    // cv::imwrite(ss.str(),out);
 
     //cv::Mat out;
     //cv::drawKeypoints(currImg, keypointsCurr, out, cv::Scalar(255,0,0), cv::DrawMatchesFlags::DEFAULT);
@@ -473,91 +482,298 @@ void detectORBInSegments(
 
 //=================================================================================================
 
-void EstimateHomographyVisp(const cv::Mat &refImg, const cv::Mat &currImg, const Matrix_t &K, vpHomography &H, const int counter )
+//==================================================================================================
+// ---------- Triplete de Malis rápido (sin 3 for) ----------
+static inline double cross2D(const Eigen::Vector2d& a,
+                             const Eigen::Vector2d& b,
+                             const Eigen::Vector2d& c){
+    return (b.x()-a.x())*(c.y()-a.y()) - (b.y()-a.y())*(c.x()-a.x());
+}
+
+static inline bool colinear2D(const Eigen::Vector2d& a,
+                              const Eigen::Vector2d& b,
+                              const Eigen::Vector2d& c,
+                              double eps=1e-12){
+    return std::abs(cross2D(a,b,c)) <= eps;
+}
+
+static std::vector<int> convexHullIdx(const std::vector<Eigen::Vector2d>& P){
+    const int n=(int)P.size();
+    std::vector<int> ord(n); std::iota(ord.begin(), ord.end(), 0);
+    std::sort(ord.begin(), ord.end(), [&](int i,int j){
+        if (P[i].x()==P[j].x()) return P[i].y()<P[j].y();
+        return P[i].x()<P[j].x();
+    });
+    std::vector<int> H; H.reserve(2*n);
+    auto crossIdx = [&](int a,int b,int c){ return cross2D(P[a],P[b],P[c]); };
+    for(int id:ord){
+        while(H.size()>=2 && crossIdx(H[H.size()-2],H[H.size()-1],id)<=0) H.pop_back();
+        H.push_back(id);
+    }
+    size_t low=H.size();
+    for(int k=n-2;k>=0;--k){
+        int id=ord[k];
+        while(H.size()>low && crossIdx(H[H.size()-2],H[H.size()-1],id)<=0) H.pop_back();
+        H.push_back(id);
+    }
+    if(!H.empty()) H.pop_back();
+    return H;
+}
+
+static inline long double areaProdSq(const Eigen::Vector2d& ar,
+                                     const Eigen::Vector2d& br,
+                                     const Eigen::Vector2d& cr,
+                                     const Eigen::Vector2d& ac,
+                                     const Eigen::Vector2d& bc,
+                                     const Eigen::Vector2d& cc){
+    const long double Aref = cross2D(ar,br,cr);
+    const long double Acur = cross2D(ac,bc,cc);
+    return (Aref*Aref)*(Acur*Acur);
+}
+
+std::array<int,3> selectBestMalisTripletFast(const std::vector<Eigen::Vector2d>& ref,
+                                             const std::vector<Eigen::Vector2d>& cur){
+    const int n=(int)ref.size();
+    if(n!=(int)cur.size() || n<8) throw std::runtime_error(">=8 matches y tamaños iguales.");
+
+    auto Href = convexHullIdx(ref);
+    auto Hcur = convexHullIdx(cur);
+
+    std::vector<int> cand = Href;
+    cand.insert(cand.end(), Hcur.begin(), Hcur.end());
+    std::sort(cand.begin(), cand.end());
+    cand.erase(std::unique(cand.begin(), cand.end()), cand.end());
+    if((int)cand.size()<3){ cand.resize(n); std::iota(cand.begin(), cand.end(), 0); }
+
+    std::vector<char> isCand(n,0); for(int id:cand) isCand[id]=1;
+    std::vector<int> loop; loop.reserve(Href.size());
+    for(int id:Href) if(isCand[id]) loop.push_back(id);
+    if((int)loop.size()<3) loop = Href;
+
+    const int h=(int)loop.size();
+    if(h<3) throw std::runtime_error("Hull degenerada.");
+
+    auto idxAt = [&](int t){ return loop[(t%h+h)%h]; };
+
+    long double best=-1.0L; std::array<int,3> bestIdx{loop[0],loop[1],loop[2]};
+    int k=2;
+    for(int i=0;i<h;++i){
+        int ii=idxAt(i);
+        k = std::max(k, i+2);
+        for(int j=i+1; j<i+h-1; ++j){
+            int jj=idxAt(j);
+            auto scoreAt = [&](int kk)->long double{
+                int kkid=idxAt(kk);
+                if (colinear2D(ref[ii],ref[jj],ref[kkid])) return -1.0L;
+                if (colinear2D(cur[ii],cur[jj],cur[kkid])) return -1.0L;
+                return areaProdSq(ref[ii],ref[jj],ref[kkid], cur[ii],cur[jj],cur[kkid]);
+            };
+            long double s0 = scoreAt(k);
+            while(true){
+                long double s1 = scoreAt(k+1);
+                if(s1>s0){ ++k; s0=s1; } else break;
+            }
+            if(s0>best){ best=s0; bestIdx={ ii, jj, idxAt(k) }; }
+        }
+    }
+    if(best<0.0L) throw std::runtime_error("No hay triplete válido (no colineal en ambas vistas).");
+    return bestIdx;
+}
+// ---------- fin helpers ----------
+
+double symmetricTransferError(const vpHomography& H,
+                              const Eigen::Vector2d& p_cur,
+                              const Eigen::Vector2d& p_ref)
 {
-    //*----------------- Step 1: Detect keypoints and compute keypoints using ORB Detector    -------------------------*//
-    //int nFeatures = 600;
-    //cv::Ptr<cv::FeatureDetector> detector = cv::ORB::create(nFeatures);
+    auto lift = [](const Eigen::Vector2d& p){ return Eigen::Vector3d(p.x(), p.y(), 1.0); };
+    Eigen::Matrix3d He;
+    for (int r=0;r<3;++r) for (int c=0;c<3;++c) He(r,c) = H[r][c];
+
+    const Eigen::Vector3d m  = lift(p_cur);
+    const Eigen::Vector3d mp = lift(p_ref);
+
+    const Eigen::Vector3d Hmp   = He * mp;
+    const Eigen::Vector3d Hinv_m= He.inverse() * m;
+
+    const Eigen::Vector2d pred_in_cur = (Hmp   / Hmp(2)).head<2>();
+    const Eigen::Vector2d pred_in_ref = (Hinv_m/ Hinv_m(2)).head<2>();
+
+    const double d1 = (pred_in_cur - p_cur).squaredNorm();
+    const double d2 = (pred_in_ref - p_ref).squaredNorm();
+    return d1 + d2;
+}
+
+std::vector<int> filterInliersBySTE(const vpHomography& H,
+                                    const std::vector<Eigen::Vector2d>& cur,
+                                    const std::vector<Eigen::Vector2d>& ref,
+                                    double tau_sq,
+                                    size_t min_keep,
+                                    size_t max_keep)
+{
+    const size_t n = std::min(cur.size(), ref.size());
+    struct Item { int idx; double e; };
+    std::vector<Item> items; items.reserve(n);
+    for (size_t i=0;i<n;++i){
+        const double e = symmetricTransferError(H, cur[i], ref[i]);
+        if (std::isfinite(e)) items.push_back({(int)i, e});
+    }
+    std::sort(items.begin(), items.end(), [](const Item&a, const Item&b){ return a.e < b.e; });
+
+    // Primero todos los < tau, garantizando un mínimo; luego cap opcional
+    std::vector<int> keep; keep.reserve(std::min(max_keep, items.size()));
+    for (auto &it : items) if (it.e <= tau_sq) keep.push_back(it.idx);
+
+    if (keep.size() < min_keep) {
+        // rellena con los mejores aunque superen el umbral
+        for (auto &it : items) {
+            if (std::find(keep.begin(), keep.end(), it.idx) == keep.end()) keep.push_back(it.idx);
+            if (keep.size() >= min_keep) break;
+        }
+    }
+    if (keep.size() > max_keep) keep.resize(max_keep);
+    return keep;
+}
+
+bool sanityCheckHomography(const vpHomography& H,
+                           double min_det,
+                           double max_cond)
+{
+    Eigen::Matrix3d He;
+    for (int r=0;r<3;++r) for (int c=0;c<3;++c) He(r,c) = H[r][c];
+
+    const double det = He.determinant();
+    if (!std::isfinite(det) || std::abs(det) < min_det) return false;
+
+    Eigen::JacobiSVD<Eigen::Matrix3d> svd(He);
+    const auto sv = svd.singularValues();
+    if (sv(2) <= 0) return false;
+    const double cond = sv(0) / sv(2);
+    if (!std::isfinite(cond) || cond > max_cond) return false;
+
+    return true;
+}
+
+
+//=================================================================================================
+
+void EstimateHomographyVisp(const cv::Mat &refImg,const cv::Mat &currImg,const Matrix_t &K, vpHomography &H, const int /*counter*/ )
+{
+    // ---------------- 1) Detect + describe (ORB) ----------------
+    const int nFeatures = 600;
+    cv::Ptr<cv::FeatureDetector> detector = cv::ORB::create(nFeatures);
     std::vector<cv::KeyPoint> keypointsRef, keypointsCurr;
     cv::Mat descriptorsRef, descriptorsCurr;
 
-    //detector->detectAndCompute( refImg, noArray(), keypointsRef, descriptorsRef );
-    //detector->detectAndCompute( currImg, noArray(), keypointsCurr, descriptorsCurr );
-
-    detectORBInSegments(refImg, keypointsRef, descriptorsRef);
-    detectORBInSegments(currImg, keypointsCurr, descriptorsCurr);
+    detector->detectAndCompute(refImg, cv::noArray(), keypointsRef, descriptorsRef);
+    detector->detectAndCompute(currImg, cv::noArray(), keypointsCurr, descriptorsCurr);
 
     descriptorsRef.convertTo(descriptorsRef, CV_8U);
     descriptorsCurr.convertTo(descriptorsCurr, CV_8U);
 
-    
-    //*----------------- Step 2: Matching descriptor vectors with a FLANN based matcher  -------------------------*//
-    //*----------------- Since ORB is a binary-point descriptor Hamming distance is used -------------------------*//
-
+    // ---------------- 2) Matching (Hamming + Lowe ratio) --------
     cv::Ptr<cv::DescriptorMatcher> matcher = cv::DescriptorMatcher::create("BruteForce-Hamming");
     std::vector<std::vector<cv::DMatch>> matches;
     matcher->knnMatch(descriptorsRef, descriptorsCurr, matches, 4);
 
     std::vector<cv::DMatch> goodMatches;
-    for(const auto m : matches)
-        if(m[0].distance < m[1].distance * 0.7f)
+    goodMatches.reserve(matches.size());
+    for (const auto &m : matches) {
+        if (m.size() >= 2 && m[0].distance < 0.7f * m[1].distance)
             goodMatches.push_back(m[0]);
+    }
+    if (goodMatches.size() < 8) {
+        throw std::runtime_error("EstimateHomographyVisp: menos de 8 coincidencias válidas.");
+    }
 
-    //*----------------- Step 3: Selecting good matches and compute homography  -------------------------*//
-    
+    // ---------------- 3) Normalizar a plano calibrado -----------
+    const Matrix_t Kinv_ = K.inverse();
+
     std::vector<double> refPoints_x(goodMatches.size());
     std::vector<double> refPoints_y(goodMatches.size());
-    std::vector<double>  currentPoints_x(goodMatches.size());
-    std::vector<double>  currentPoints_y(goodMatches.size());
+    std::vector<double> curPoints_x(goodMatches.size());
+    std::vector<double> curPoints_y(goodMatches.size());
 
-    Matrix_t Kinv_= K.inverse();
+    std::vector<Eigen::Vector2d> refPts; refPts.reserve(goodMatches.size());
+    std::vector<Eigen::Vector2d> curPts; curPts.reserve(goodMatches.size());
 
-    //-- Get the keypoints from the good matches
     Point2D_t desnPoint, normPoint;
-    for( size_t i = 0; i < goodMatches.size(); i++ )
-    {
-        //====================== Reference points ====================================
-        desnPoint(0) =  keypointsRef[ goodMatches[i].queryIdx ].pt.x;
-        desnPoint(1) =  keypointsRef[ goodMatches[i].queryIdx ].pt.y;
-        //=================== points on the normalized plane =========================
-        normPoint = NormalicePoint(desnPoint,Kinv_);
+
+    for (size_t i = 0; i < goodMatches.size(); ++i) {
+        // referencia
+        desnPoint(0) = keypointsRef[goodMatches[i].queryIdx].pt.x;
+        desnPoint(1) = keypointsRef[goodMatches[i].queryIdx].pt.y;
+        normPoint = NormalicePoint(desnPoint, Kinv_);
         refPoints_x[i] = normPoint(0);
         refPoints_y[i] = normPoint(1);
 
-        //======================== current points ====================================
-        desnPoint(0) =  keypointsCurr[ goodMatches[i].trainIdx ].pt.x;
-        desnPoint(1) =  keypointsCurr[ goodMatches[i].trainIdx ].pt.y;
-        normPoint = NormalicePoint(desnPoint,Kinv_);
-        currentPoints_x[i] = normPoint(0);
-        currentPoints_y[i] = normPoint(1);
+        // actual
+        desnPoint(0) = keypointsCurr[goodMatches[i].trainIdx].pt.x;
+        desnPoint(1) = keypointsCurr[goodMatches[i].trainIdx].pt.y;
+        normPoint = NormalicePoint(desnPoint, Kinv_);
+        curPoints_x[i] = normPoint(0);
+        curPoints_y[i] = normPoint(1);
+
+        refPts.emplace_back(refPoints_x[i], refPoints_y[i]);
+        curPts.emplace_back(curPoints_x[i], curPoints_y[i]);
     }
 
-    std::tuple<int,int,int> selected_idxs;
-    selectBestTriplet(refPoints_x, refPoints_y,currentPoints_x, currentPoints_y,keypointsRef, goodMatches,
-                    selected_idxs);
+    // ---------------- 4) Triplete óptimo (Malis, sin O(n^3)) ----
+    const auto best3 = selectBestMalisTripletFast(refPts, curPts);
 
-    drawSelectedTriplet(keypointsRef, goodMatches, selected_idxs, refImg, counter);
+    // Helper para empaquetar índices en los vectores HLM
+    std::vector<double> x_ref, y_ref, x_cur, y_cur;
+    auto push_idx = [&](int idx){
+        x_ref.push_back(refPoints_x[idx]); y_ref.push_back(refPoints_y[idx]);
+        x_cur.push_back(curPoints_x[idx]); y_cur.push_back(curPoints_y[idx]);
+    };
 
-    vpHomography::HLM(currentPoints_x, currentPoints_y,refPoints_x, refPoints_y, false, H);
+    // ---------------- 5) H inicial con paquete mínimo -----------
+    x_ref.reserve(std::max<size_t>(8, refPts.size()));
+    y_ref.reserve(x_ref.capacity());
+    x_cur.reserve(x_ref.capacity());
+    y_cur.reserve(x_ref.capacity());
+
+    // 3 del triplete + completar hasta 8
+    push_idx(best3[0]); push_idx(best3[1]); push_idx(best3[2]);
+    for (size_t i = 0; i < refPts.size() && x_ref.size() < 8; ++i) {
+        if ((int)i == best3[0] || (int)i == best3[1] || (int)i == best3[2]) continue;
+        push_idx((int)i);
+    }
+
+    vpHomography H0;
+    // isplanar=false → múltiples planos → homografía respecto a plano virtual
+    vpHomography::HLM(x_cur, y_cur, x_ref, y_ref, /*isplanar=*/false, H0);
+    H0 /= H0[1][1];
+
+    // ---------------- 6) Filtrar inliers por STE -----------------
+    // Umbral en coordenadas normalizadas (px^2). Ajusta según ruido.
+    const double tau_sq = 1.0;                 // ~1 px^2
+    const size_t min_keep = 12;                // asegura >8
+    const size_t max_keep = 300;               // limita coste si hay miles de matches
+    auto inliers = filterInliersBySTE(H0, curPts, refPts, tau_sq, min_keep, max_keep);
+
+    if (inliers.size() < 8) {
+        // Si por alguna razón el filtrado es muy estricto, usa H0 como salida segura.
+        H = H0;
+        return;
+    }
+
+    // ---------------- 7) Re-estimar con MUCHOS puntos ----------
+    x_ref.clear(); y_ref.clear(); x_cur.clear(); y_cur.clear();
+    x_ref.reserve(inliers.size()); y_ref.reserve(inliers.size());
+    x_cur.reserve(inliers.size()); y_cur.reserve(inliers.size());
+
+    for (int idx : inliers) push_idx(idx);
+
+    vpHomography::HLM(x_cur, y_cur, x_ref, y_ref, /*isplanar=*/false, H);
     H /= H[1][1];
 
-    //FPTYPE rmse = evaluateHomographyProjection(refPoints_x, refPoints_y, currentPoints_x, currentPoints_y,H);
-
-    std::stringstream ss1;
-    cv::Mat outRefImg = refImg.clone();
-    ss1 << "/home/axel/Homography_MPC/src/visual_predictive/src/region_matches/ref_img_" << counter << ".jpg";
-    drawSegmentedKeypoints(outRefImg,keypointsRef,ss1.str());
-
-    std::stringstream ss2;
-    cv::Mat outCurrImg = currImg.clone();
-    ss2 << "/home/axel/Homography_MPC/src/visual_predictive/src/region_matches/curr_img_" << counter << ".jpg";
-    drawSegmentedKeypoints(outCurrImg,keypointsCurr,ss2.str());
-
-    std::stringstream ss;
-    ss << "/home/axel/Homography_MPC/src/visual_predictive/src/folder_matches/" << counter << ".jpg";
-    cv::Mat out;
-    cv::drawMatches(refImg, keypointsRef, currImg, keypointsCurr, goodMatches, out);
-    cv::imwrite(ss.str(),out);
+    // ---------------- 8) Sanity check + fallback ----------------
+    if (!sanityCheckHomography(H)) {
+        if (sanityCheckHomography(H0)) {
+            H = H0; // fallback suave
+        } // si no, dejamos H como está; el llamador puede manejar el error
+    }
 
 }
 

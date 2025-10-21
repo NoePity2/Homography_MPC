@@ -64,3 +64,17 @@ target_link_libraries(video_listener ${OpenCV_LIBRARIES})
 add_executable(save_image_listener src/save_image_listener.cpp)
 target_link_libraries(save_image_listener ${catkin_LIBRARIES})
 target_link_libraries(save_image_listener ${OpenCV_LIBRARIES})
+
+add_executable(real_homography_node src/real_homography_node.cpp src/utils.cpp src/vision_utils.cpp)
+
+## Specify libraries to link a library or executable target against
+ target_link_libraries(real_homography_node
+   ${catkin_LIBRARIES}
+   ${OpenCV_LIBRARIES}
+   ${VISP_LIBRARIES}
+ )
+
+
+
+
+

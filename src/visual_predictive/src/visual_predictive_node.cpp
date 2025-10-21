@@ -15,6 +15,9 @@
 #include <std_msgs/Float64.h>
 #include <eigen_conversions/eigen_msg.h>
 
+#include <visp3/vision/vpHomography.h>
+#include <visp3/core/vpEigenConversion.h>
+
 cv::Mat refImage, currentImage;
 geometry_msgs::Twist vel;     //Crea objeto "vel" para mensajes tipo "geometry_msgs/Twist"
 double t0,t;
@@ -49,18 +52,25 @@ int main(int argc, char **argv)
 {
     Matrix_t K(3,3); //Calibration of the camera matrix
     Matrix_t H(3,3); // Homography matrix
+    vpHomography Hvisp;
     Matrix_t R(3,3); // Rotation between current frame and the reference frame
     Vector3D_t t;    // Translation between current frame and the reference frame
     Vector3D_t n;    // normal vector in the reference plane
     FPTYPE d, phi;
+    FPTYPE d_fix = 5;
     homographySolution homSolution;
     int counter = 0;
     int cont2 = 0, tecla;
     bool fin = false;
 
-    K << 522.1910329546544,         0.0      , 320.5, 
-         0.0              , 522.1910329546544, 240.5, 
-         0.0              ,         0.0      ,   1.0;
+    // K << 522.1910329546544,         0.0      , 320.5, 
+    //      0.0              , 522.1910329546544, 240.5, 
+    //      0.0              ,         0.0      ,   1.0;
+
+    // Calibration camera matrix of turtlebot simulator
+    K << 402.2965906510784,        0.0       , 320.5, 
+                 0.0      , 402.2965906510784, 240.5, 
+                 0.0      ,        0.0       ,   1.0;
 
 
     refImage = cv::imread(REF_IMAGE_NAME, cv::IMREAD_COLOR);
@@ -109,12 +119,17 @@ int main(int argc, char **argv)
               std::cout << "Could not read the current image: "  << std::endl;
           }
           else{
-              std::cout << "current image is ready: "  << std::endl;
+              //std::cout << "current image is ready: "  << std::endl;
               cv::imwrite("/home/noe/ddr_ws/src/visual_predictive/src/current_image.jpg",currentImage);
               EstimateHomography(refImage, currentImage, K, H, counter );
+              //EstimateHomographyVisp(refImage, currentImage, K, Hvisp, counter );
+              //vp::visp2eigen(Hvisp,H);
+
               RecoverFromHomography(H,R,t,n,d, counter, homSolution);
               phi = YRotationAngleFromRotationMatrix(R);
-              std::cout << "t : " << t << std::endl; 
+              //std::cout << "t : " << t << std::endl; 
+              std::cout << "H : " << H << std::endl;
+              std::cout << "d_estimate : " << d << std::endl;
               std::cout << "phi : " << phi*(180/3.141592) << std::endl; 
               tf::matrixEigenToMsg(H, H_msg);
               tf::matrixEigenToMsg(t, ck_t_ct_msg);
@@ -137,10 +152,6 @@ int main(int argc, char **argv)
     //vel = velocities(0,0,0);
     //pub.publish(vel);
 
-
-    //cv::destroyWindow("Video Stream");
-    return 0;
-}
 
     //cv::destroyWindow("Video Stream");
     return 0;

@@ -32,6 +32,16 @@
 
 #include <tuple>
 #include <sstream>
+#include <vector>
+#include <limits>
+#include <cmath>
+#include <algorithm>
+
+#include <Eigen/Core>
+#include <array>
+#include <numeric>
+#include <stdexcept>
+
 
 #include <visp3/core/vpPoint.h>
 #include <cmath> // para std::sqrt
@@ -104,44 +114,33 @@ void EstimateHomography(const cv::Mat &refImg, const cv::Mat &currImg, const Mat
 
 //================================================================================================
 
-bool isNonColinear(FPTYPE x1, FPTYPE y1, FPTYPE x2, FPTYPE y2, FPTYPE x3, FPTYPE y3);
+// Selección rápida del triplete (Malis) sin 3 for: O(n log n + h^2)
+std::array<int,3> selectBestMalisTripletFast(
+    const std::vector<Eigen::Vector2d>& ref,
+    const std::vector<Eigen::Vector2d>& cur);
 
-void reorderVector(std::vector<double>& v, int i, int j, int k);
+// --- NEW: utilidades de validación ---
+double symmetricTransferError(const vpHomography& H,
+                              const Eigen::Vector2d& p_cur,
+                              const Eigen::Vector2d& p_ref);
 
-void selectTripletFromSegments( const std::vector<FPTYPE> &ref_x,
-                                const std::vector<FPTYPE> &ref_y,
-                                std::tuple<int,int,int> &selected_idxs);
+std::vector<int> filterInliersBySTE(const vpHomography& H,
+                                    const std::vector<Eigen::Vector2d>& cur,
+                                    const std::vector<Eigen::Vector2d>& ref,
+                                    double tau_sq,              // umbral en coordenadas normalizadas (px^2)
+                                    size_t min_keep = 8,        // mínimo a conservar
+                                    size_t max_keep = 200);     // opcional cap
 
-
-void selectBestTriplet(std::vector<FPTYPE>& ref_x, std::vector<FPTYPE>& ref_y,
-                       std::vector<FPTYPE>& cur_x, std::vector<FPTYPE>& cur_y,
-                       const std::vector<cv::KeyPoint>& keypointsRef,
-                       const std::vector<cv::DMatch>& matches,
-                       std::tuple<int, int, int>& selected_idxs);
-
-
-void drawSelectedTriplet(const std::vector<cv::KeyPoint>& keypointsRef,
-                         const std::vector<cv::DMatch>& goodMatches,
-                         const std::tuple<int, int, int>& best_idxs,
-                         const cv::Mat& refImg, int counter);
-
-void drawSegmentedKeypoints(const cv::Mat& image,
-                            const std::vector<cv::KeyPoint>& keypoints,
-                            const std::string& filename);
-
+bool sanityCheckHomography(const vpHomography& H,
+                           double min_det = 1e-8,
+                           double max_cond = 1e6);
+                           
 double evaluateHomographyProjection(
     const std::vector<double> &ref_x,
     const std::vector<double> &ref_y,
     const std::vector<double> &curr_x,
     const std::vector<double> &curr_y,
     const vpHomography &H);
-
-
-void detectORBInSegments(  const cv::Mat &img,
-    std::vector<cv::KeyPoint> &keypoints_out,
-    cv::Mat &descriptors_out,
-    int nFeaturesPerRegion );
-
 
 //=================================================================================================
 
