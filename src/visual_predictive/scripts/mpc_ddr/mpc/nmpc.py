@@ -406,7 +406,7 @@ class OptimizationHMPC(object):
 			self.Homography32.set_values(d=d,n=n,ck_t_ct=ck_t_ct,rk_x_rl=x_kn,rk_y_rl=y_kn,c_x_r=c_x_r,c_z_r=c_z_r,theta=theta_kn,phi=phi)
 			self.Homography33.set_values(d=d,n=n,ck_t_ct=ck_t_ct,rk_x_rl=x_kn,rk_y_rl=y_kn,c_x_r=c_x_r,c_z_r=c_z_r,theta=theta_kn,phi=phi)   
 
-			lambda_k = vision_parameters['lambda_gain']
+			'''lambda_k = vision_parameters['lambda_gain']
 			J += 0.5 * lambda_k*vision_parameters['b11'] * (self.Homography11.get_h11() - self.h11_desired_value[0] )**2 
 			J += 0.5 * lambda_k*vision_parameters['b12'] * (self.Homography12.get_h12() - self.h12_desired_value[0] )**2
 			J += 0.5 * lambda_k*vision_parameters['b13'] * (self.Homography13.get_h13() - self.h13_desired_value[0] )**2
