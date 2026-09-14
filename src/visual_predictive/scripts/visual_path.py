@@ -49,9 +49,11 @@ class VMPC():
 		self.vision_parameters  = vision_parameters
 
 		M = 0.20
+		L = 0.18
 		self.pico_time = 0
 		self.task = 0
-		self.Nreferences = 0 
+		self.Nreferences = 0
+		self.ExecutionTimes = []
 
 		#States
 		#self.yaw = yaw_init*np.pi/180
@@ -87,8 +89,8 @@ class VMPC():
 
 		#optimal_controls_pub = rospy.Publisher("/optimal_controls", Twist, queue_size=10)
 		#self.optimal_controls = Twist()
-		#self.vel_pub = rospy.Publisher('/mobile_base_controller/cmd_vel', Twist, queue_size=10)
-		self.vel_pub = rospy.Publisher('/cmd_vel', Twist, queue_size=10)
+		#self.vel_pub = rospy.Publisher('/mobile_base_controller/cmd_vel', Twist, queue_size=10) #Topic for the TiaGo simulations
+		self.vel_pub = rospy.Publisher('/cmd_vel', Twist, queue_size=10)	#Topic for the jetbot implementations
 		self.vel_msg = Twist()
 		
 		#self.error_pub = rospy.Publisher('/tracking_errors', Pose2D, queue_size=10)
@@ -108,16 +110,17 @@ class VMPC():
 			self.vel_ops() #Compute the control signals
 			print("phi = ", np.rad2deg(self.phi.data))
 			print('Number of references:', self.Nreferences)
+			print('Current image:', self.task+1)
 
 			if self.task < (self.Nreferences - 1):
-				self.V_k[0] = sigma(self.V_k[0], 0.18, M)
+				self.V_k[0] = sigma(self.V_k[0], L, M)
 				self.vel_msg.linear.x  = self.V_k[0]
 							
 			else:
 				
-				if (self.pico_time > 5):
+				if (self.pico_time > 2):
 
-					if(abs(self.homo_matrix.data[0])>0.94 and abs(self.homo_matrix.data[1])<0.06 and abs(self.homo_matrix.data[2])<0.06 and abs(self.homo_matrix.data[6])<0.06 and abs(self.homo_matrix.data[7])<0.06 and abs(self.homo_matrix.data[8])>0.94):
+					if(abs(self.homo_matrix.data[0])>0.90 and abs(self.homo_matrix.data[1])<0.1 and abs(self.homo_matrix.data[2])<0.1 and abs(self.homo_matrix.data[6])<0.1 and abs(self.homo_matrix.data[7])<0.1 and abs(self.homo_matrix.data[8])>0.90):
 						self.vel_msg.linear.x = 0.0; self.vel_msg.angular.z = 0.0
 						self.V_k[0] = 0
 						self.angular_velocity[0] = 0
@@ -131,7 +134,7 @@ class VMPC():
 
 				else:
 				
-					self.V_k[0] = sigma(self.V_k[0], 0.18, M)
+					#self.V_k[0] = sigma(self.V_k[0], L, M)
 					self.pico_time += 1
 					self.vel_msg.linear.x  = self.V_k[0]
 					
@@ -226,6 +229,10 @@ class VMPC():
 		self.angular_velocity = self.HMPC.get_Omega_opt_solution()
 		self.V_k = self.HMPC.get_Vopt_solution()
 		self.predicted_values = self.HMPC.get_predicted_values()
+		self.ExecutionTimes = self.HMPC.Execution_Times
+		Average = np.sum(self.ExecutionTimes) / len(self.ExecutionTimes)
+		StdDev = np.std(self.ExecutionTimes)
+		print(f'Average time: {Average}, Standard deviation: {StdDev} with {len(self.ExecutionTimes)} samples and Maximum time of: {max(self.ExecutionTimes)}')
 
 	def task_value_callback(self,msg):
 		self.task = msg.data

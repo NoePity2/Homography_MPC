@@ -113,7 +113,7 @@ def get_3D_target_points(n_points,xmin,ymin,ymax,zmin,zmax):
     return np.asarray(w_points)
 
 
-# This is a saturation function.
+#Tangential saturation function
 def sigma(x, L, M):
 
     c = np.pi / (2 * (M - L))
@@ -123,4 +123,11 @@ def sigma(x, L, M):
         
     else:
         return L + (np.tanh(c*(x-L)))/c
+        
+#Exponential saturation function
+'''def sigma(x, L, M):
+    if x > L:
+        return x
+    else:
+        return L + (M-L) * np.exp(-x)'''
 
